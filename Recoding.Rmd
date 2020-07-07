@@ -1,0 +1,284 @@
+---
+title: "Untitled"
+author: "Javier Fernandez"
+date: "7/6/2020"
+output: pdf_document
+---
+
+```{r setup, echo=FALSE,warning=(FALSE),message=FALSE}
+
+library(tidyverse)
+library(dplyr)
+require(plyr)
+
+
+library(haven)
+Edit_2017_2018_1 <- read_dta("~/Google Drive/Internship_WB_Summer/Edit/DataEditM2017-2018/Edit 2017_2018_original.dta")
+
+
+#VIII4R1C1, question 1
+Edit_2017_2018_1$VIII4R1C1_new<-as.character(Edit_2017_2018_1$VIII4R1C1)
+
+Edit_2017_2018_1$VIII4R1C1_new<-revalue(Edit_2017_2018_1$VIII4R1C1_new,c("4"="0","3"="1","2"="0.66","1"="0.33"))
+Edit_2017_2018_1$VIII4R1C1_new<-as.numeric(Edit_2017_2018_1$VIII4R1C1_new)
+
+#VIII5R1C1, question 2
+Edit_2017_2018_1$VIII5R1C1_new<-as.character(Edit_2017_2018_1$VIII5R1C1)
+
+Edit_2017_2018_1$VIII5R1C1_new<-revalue(Edit_2017_2018_1$VIII5R1C1_new,c("1"="0","2"="0.666","3"="0.666","4"="1","5"="0"))
+Edit_2017_2018_1$VIII5R1C1_new<-as.numeric(Edit_2017_2018_1$VIII5R1C1_new)
+
+####VIII6R1C1, Question 3: frequency indicators reviewed by Managers
+#Yearly_Manager
+Edit_2017_2018_1$VIII6R1C1_new<-as.character(Edit_2017_2018_1$VIII6R1C1)
+
+Edit_2017_2018_1$VIII6R1C1_new<-revalue(Edit_2017_2018_1$VIII6R1C1_new,c("1"="0.166"))
+Edit_2017_2018_1$VIII6R1C1_new<-as.numeric(Edit_2017_2018_1$VIII6R1C1_new)
+#Edit_2017_2018_1$VIII6R1C1_new[is.na(Edit_2017_2018_1$VIII6R1C1_new)]<-0
+
+#Quarterly_Manager
+Edit_2017_2018_1$VIII6R2C1_new<-as.character(Edit_2017_2018_1$VIII6R2C1)
+
+Edit_2017_2018_1$VIII6R2C1_new<-revalue(Edit_2017_2018_1$VIII6R2C1_new,c("1"="0.333"))
+Edit_2017_2018_1$VIII6R2C1_new<-as.numeric(Edit_2017_2018_1$VIII6R2C1_new)
+#Edit_2017_2018_1$VIII6R2C1_new[is.na(Edit_2017_2018_1$VIII6R2C1_new)]<-0
+
+#Monthly_Manager
+Edit_2017_2018_1$VIII6R3C1_new<-as.character(Edit_2017_2018_1$VIII6R3C1)
+
+Edit_2017_2018_1$VIII6R3C1_new<-revalue(Edit_2017_2018_1$VIII6R3C1_new,c("1"="0.5"))
+Edit_2017_2018_1$VIII6R3C1_new<-as.numeric(Edit_2017_2018_1$VIII6R3C1_new)
+#Edit_2017_2018_1$VIII6R3C1_new[is.na(Edit_2017_2018_1$VIII6R3C1_new)]<-0
+
+#weekly_Manager
+Edit_2017_2018_1$VIII6R4C1_new<-as.character(Edit_2017_2018_1$VIII6R4C1)
+
+Edit_2017_2018_1$VIII6R4C1_new<-revalue(Edit_2017_2018_1$VIII6R4C1_new,c("1"="0.666"))
+Edit_2017_2018_1$VIII6R4C1_new<-as.numeric(Edit_2017_2018_1$VIII6R4C1_new)
+#Edit_2017_2018_1$VIII6R4C1_new[is.na(Edit_2017_2018_1$VIII6R4C1_new)]<-0
+
+#daily_Manager
+Edit_2017_2018_1$VIII6R5C1_new<-as.character(Edit_2017_2018_1$VIII6R5C1)
+
+Edit_2017_2018_1$VIII6R5C1_new<-revalue(Edit_2017_2018_1$VIII6R5C1_new,c("1"="0.833"))
+Edit_2017_2018_1$VIII6R5C1_new<-as.numeric(Edit_2017_2018_1$VIII6R5C1_new)
+#Edit_2017_2018_1$VIII6R5C1_new[is.na(Edit_2017_2018_1$VIII6R5C1_new)]<-0
+
+#hourly_Manager
+Edit_2017_2018_1$VIII6R6C1_new<-as.character(Edit_2017_2018_1$VIII6R6C1)
+
+Edit_2017_2018_1$VIII6R6C1_new<-revalue(Edit_2017_2018_1$VIII6R6C1_new,c("1"="1"))
+Edit_2017_2018_1$VIII6R6C1_new<-as.numeric(Edit_2017_2018_1$VIII6R6C1_new)
+#Edit_2017_2018_1$VIII6R6C1_new[is.na(Edit_2017_2018_1$VIII6R6C1_new)]<-0
+
+#never_Manager
+Edit_2017_2018_1$VIII6R7C1_new<-as.character(Edit_2017_2018_1$VIII6R7C1)
+
+Edit_2017_2018_1$VIII6R7C1_new<-revalue(Edit_2017_2018_1$VIII6R7C1_new,c("1"="0"))
+Edit_2017_2018_1$VIII6R7C1_new<-as.numeric(Edit_2017_2018_1$VIII6R7C1_new)
+#Edit_2017_2018_1$VIII6R7C1_new[is.na(Edit_2017_2018_1$VIII6R7C1_new)]<-0, # this should be optinonal. No zero for N.A in order 
+#to identify those case with "Never"=0
+
+####VIII7R1C1,question 4: frequency indicators reviewed by No Managers
+
+#Yearly_No_Manager
+Edit_2017_2018_1$VIII7R1C1_new<-as.character(Edit_2017_2018_1$VIII7R1C1)
+
+Edit_2017_2018_1$VIII7R1C1_new<-revalue(Edit_2017_2018_1$VIII7R1C1_new,c("1"="0.166"))
+Edit_2017_2018_1$VIII7R1C1_new<-as.numeric(Edit_2017_2018_1$VIII7R1C1_new)
+#Edit_2017_2018_1$VIII7R1C1_new[is.na(Edit_2017_2018_1$VIII7R1C1_new)]<-0
+
+#Quarterly_No_Manager
+Edit_2017_2018_1$VIII7R2C1_new<-as.character(Edit_2017_2018_1$VIII7R2C1)
+
+Edit_2017_2018_1$VIII7R2C1_new<-revalue(Edit_2017_2018_1$VIII7R2C1_new,c("1"="0.333"))
+Edit_2017_2018_1$VIII7R2C1_new<-as.numeric(Edit_2017_2018_1$VIII7R2C1_new)
+#Edit_2017_2018_1$VIII7R2C1_new[is.na(Edit_2017_2018_1$VIII7R2C1_new)]<-0
+
+#Monthly_No_Manager
+Edit_2017_2018_1$VIII7R3C1_new<-as.character(Edit_2017_2018_1$VIII7R3C1)
+
+Edit_2017_2018_1$VIII7R3C1_new<-revalue(Edit_2017_2018_1$VIII7R3C1_new,c("1"="0.5"))
+Edit_2017_2018_1$VIII7R3C1_new<-as.numeric(Edit_2017_2018_1$VIII7R3C1_new)
+#Edit_2017_2018_1$VIII7R3C1_new[is.na(Edit_2017_2018_1$VIII7R3C1_new)]<-0
+
+#weekly_No_Manager
+Edit_2017_2018_1$VIII7R4C1_new<-as.character(Edit_2017_2018_1$VIII7R4C1)
+
+Edit_2017_2018_1$VIII7R4C1_new<-revalue(Edit_2017_2018_1$VIII7R4C1_new,c("1"="0.666"))
+Edit_2017_2018_1$VIII7R4C1_new<-as.numeric(Edit_2017_2018_1$VIII7R4C1_new)
+#Edit_2017_2018_1$VIII7R4C1_new[is.na(Edit_2017_2018_1$VIII7R4C1_new)]<-0
+
+#daily_No_Manager
+Edit_2017_2018_1$VIII7R5C1_new<-as.character(Edit_2017_2018_1$VIII7R5C1)
+
+Edit_2017_2018_1$VIII7R5C1_new<-revalue(Edit_2017_2018_1$VIII7R5C1_new,c("1"="0.833"))
+Edit_2017_2018_1$VIII7R5C1_new<-as.numeric(Edit_2017_2018_1$VIII7R5C1_new)
+#Edit_2017_2018_1$VIII7R5C1_new[is.na(Edit_2017_2018_1$VIII7R5C1_new)]<-0
+
+#hourly_No_Manager
+Edit_2017_2018_1$VIII7R6C1_new<-as.character(Edit_2017_2018_1$VIII7R6C1)
+
+Edit_2017_2018_1$VIII7R6C1_new<-revalue(Edit_2017_2018_1$VIII7R6C1_new,c("1"="1"))
+Edit_2017_2018_1$VIII7R6C1_new<-as.numeric(Edit_2017_2018_1$VIII7R6C1_new)
+#Edit_2017_2018_1$VIII7R6C1_new[is.na(Edit_2017_2018_1$VIII7R6C1_new)]<-0
+
+#never_No_Manager
+Edit_2017_2018_1$VIII7R7C1_new<-as.character(Edit_2017_2018_1$VIII7R7C1)
+
+Edit_2017_2018_1$VIII7R7C1_new<-revalue(Edit_2017_2018_1$VIII7R7C1_new,c("1"="0"))
+Edit_2017_2018_1$VIII7R7C1_new<-as.numeric(Edit_2017_2018_1$VIII7R7C1_new)
+
+
+# VIII8R1C1, question 5
+Edit_2017_2018_1$VIII8R1C1_new<-as.character(Edit_2017_2018_1$VIII8R1C1)
+
+Edit_2017_2018_1$VIII8R1C1_new<-revalue(Edit_2017_2018_1$VIII8R1C1_new,c("1"="0.5","2"="1","3"="0"))
+Edit_2017_2018_1$VIII8R1C1_new<-as.numeric(Edit_2017_2018_1$VIII8R1C1_new)
+#Edit_2017_2018_1$VIII8R1C1_new[is.na(Edit_2017_2018_1$VIII8R1C1_new)]<-0
+
+#Cleaning for "where are display boards showing".If No key performance indicators (from question 2), question 4 will be zero 
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII8R1C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII8R1C1_new))
+
+# VIII9R1C1, question 6
+Edit_2017_2018_1$VIII9R1C1_new<-as.character(Edit_2017_2018_1$VIII9R1C1)
+
+Edit_2017_2018_1$VIII9R1C1_new<-revalue(Edit_2017_2018_1$VIII9R1C1_new,c("1"="0.333","2"="0.666","3"="1","4"="0"))
+Edit_2017_2018_1$VIII9R1C1_new<-as.numeric(Edit_2017_2018_1$VIII9R1C1_new)
+#Edit_2017_2018_1$VIII9R1C1_new[is.na(Edit_2017_2018_1$VIII9R1C1_new)]<-0
+
+# VIII10R1C1, question 7
+Edit_2017_2018_1$VIII10R1C1_new<-as.character(Edit_2017_2018_1$VIII10R1C1)
+
+Edit_2017_2018_1$VIII10R1C1_new<-revalue(Edit_2017_2018_1$VIII10R1C1_new,c("1"="0","2"="0.5","3"="0.75","4"="1","5"="0.25"))
+Edit_2017_2018_1$VIII10R1C1_new<-as.numeric(Edit_2017_2018_1$VIII10R1C1_new)
+#Edit_2017_2018_1$VIII9R1C1_new[is.na(Edit_2017_2018_1$VIII9R1C1_new)]<-0
+
+# VIII11R1C1, question 8
+Edit_2017_2018_1$VIII11R1C1_new<-as.character(Edit_2017_2018_1$VIII11R1C1)
+
+Edit_2017_2018_1$VIII11R1C1_new<-revalue(Edit_2017_2018_1$VIII11R1C1_new,c("1"="0","2"="0.33","3"="0.666","4"="1"))
+Edit_2017_2018_1$VIII11R1C1_new<-as.numeric(Edit_2017_2018_1$VIII11R1C1_new)
+#Edit_2017_2018_1$VIII9R1C1_new[is.na(Edit_2017_2018_1$VIII9R1C1_new)]<-0
+
+# VIII12, Question 9
+#own performance
+Edit_2017_2018_1$VIII12R1C1_new<-as.character(Edit_2017_2018_1$VIII12R1C1)
+
+Edit_2017_2018_1$VIII12R1C1_new<-revalue(Edit_2017_2018_1$VIII12R1C1_new,c("1"="1"))
+Edit_2017_2018_1$VIII12R1C1_new<-as.numeric(Edit_2017_2018_1$VIII12R1C1_new)
+#Edit_2017_2018_1$VIII12R1C1_new[is.na(Edit_2017_2018_1$VIII12R1C1_new)]<-0
+
+#team performance
+Edit_2017_2018_1$VIII12R2C1_new<-as.character(Edit_2017_2018_1$VIII12R2C1)
+
+Edit_2017_2018_1$VIII12R2C1_new<-revalue(Edit_2017_2018_1$VIII12R2C1_new,c("1"="0.75"))
+Edit_2017_2018_1$VIII12R2C1_new<-as.numeric(Edit_2017_2018_1$VIII12R2C1_new)
+#Edit_2017_2018_1$VIII12R2C1_new[is.na(Edit_2017_2018_1$VIII12R2C1_new)]<-0
+
+#local establishment performance
+Edit_2017_2018_1$VIII12R3C1_new<-as.character(Edit_2017_2018_1$VIII12R3C1)
+
+Edit_2017_2018_1$VIII12R3C1_new<-revalue(Edit_2017_2018_1$VIII12R3C1_new,c("1"="0.5"))
+Edit_2017_2018_1$VIII12R3C1_new<-as.numeric(Edit_2017_2018_1$VIII12R3C1_new)
+#Edit_2017_2018_1$VIII12R3C1_new[is.na(Edit_2017_2018_1$VIII12R3C1_new)]<-0
+
+#entire company's performance
+Edit_2017_2018_1$VIII12R4C1_new<-as.character(Edit_2017_2018_1$VIII12R4C1)
+
+Edit_2017_2018_1$VIII12R4C1_new<-revalue(Edit_2017_2018_1$VIII12R4C1_new,c("1"="0.25"))
+Edit_2017_2018_1$VIII12R4C1_new<-as.numeric(Edit_2017_2018_1$VIII12R4C1_new)
+#Edit_2017_2018_1$VIII12R4C1_new[is.na(Edit_2017_2018_1$VIII12R4C1_new)]<-0
+
+#No performance bonuses
+Edit_2017_2018_1$VIII12R5C1_new<-as.character(Edit_2017_2018_1$VIII12R5C1)
+
+Edit_2017_2018_1$VIII12R5C1_new<-revalue(Edit_2017_2018_1$VIII12R5C1_new,c("1"="0"))
+Edit_2017_2018_1$VIII12R5C1_new<-as.numeric(Edit_2017_2018_1$VIII12R5C1_new)
+#Edit_2017_2018_1$VIII12R5C1_new[is.na(Edit_2017_2018_1$VIII12R5C1_new)]<-0
+
+# VIII13, question 10
+Edit_2017_2018_1$VIII13R1C1_new<-as.character(Edit_2017_2018_1$VIII13R1C1)
+
+Edit_2017_2018_1$VIII13R1C1_new<-revalue(Edit_2017_2018_1$VIII13R1C1_new,c("6"="0","5"="1","4"="0.8","3"="0.6","2"="0.4","1"="0.2"))
+Edit_2017_2018_1$VIII13R1C1_new<-as.numeric(Edit_2017_2018_1$VIII13R1C1_new)
+
+# VIII14, question 11
+#own performance
+Edit_2017_2018_1$VIII14R1C1_new<-as.character(Edit_2017_2018_1$VIII14R1C1)
+
+Edit_2017_2018_1$VIII14R1C1_new<-revalue(Edit_2017_2018_1$VIII14R1C1_new,c("1"="1"))
+Edit_2017_2018_1$VIII14R1C1_new<-as.numeric(Edit_2017_2018_1$VIII14R1C1_new)
+#Edit_2017_2018_1$VIII14R1C1_new[is.na(Edit_2017_2018_1$VIII14R1C1_new)]<-0
+
+#team performance
+Edit_2017_2018_1$VIII14R2C1_new<-as.character(Edit_2017_2018_1$VIII14R2C1)
+
+Edit_2017_2018_1$VIII14R2C1_new<-revalue(Edit_2017_2018_1$VIII14R2C1_new,c("1"="0.75"))
+Edit_2017_2018_1$VIII14R2C1_new<-as.numeric(Edit_2017_2018_1$VIII14R2C1_new)
+#Edit_2017_2018_1$VIII14R2C1_new[is.na(Edit_2017_2018_1$VIII14R2C1_new)]<-0
+
+#local establishment performance
+Edit_2017_2018_1$VIII14R3C1_new<-as.character(Edit_2017_2018_1$VIII14R3C1)
+
+Edit_2017_2018_1$VIII14R3C1_new<-revalue(Edit_2017_2018_1$VIII14R3C1_new,c("1"="0.5"))
+Edit_2017_2018_1$VIII14R3C1_new<-as.numeric(Edit_2017_2018_1$VIII14R3C1_new)
+#Edit_2017_2018_1$VIII14R3C1_new[is.na(Edit_2017_2018_1$VIII14R3C1_new)]<-0
+
+#entire company's performance
+Edit_2017_2018_1$VIII14R4C1_new<-as.character(Edit_2017_2018_1$VIII14R4C1)
+
+Edit_2017_2018_1$VIII14R4C1_new<-revalue(Edit_2017_2018_1$VIII14R4C1_new,c("1"="0.25"))
+Edit_2017_2018_1$VIII14R4C1_new<-as.numeric(Edit_2017_2018_1$VIII14R4C1_new)
+#Edit_2017_2018_1$VIII14R4C1_new[is.na(Edit_2017_2018_1$VIII14R4C1_new)]<-0
+
+#No performance bonuses
+Edit_2017_2018_1$VIII14R5C1_new<-as.character(Edit_2017_2018_1$VIII14R5C1)
+
+Edit_2017_2018_1$VIII14R5C1_new<-revalue(Edit_2017_2018_1$VIII14R5C1_new,c("1"="0"))
+Edit_2017_2018_1$VIII14R5C1_new<-as.numeric(Edit_2017_2018_1$VIII14R5C1_new)
+#Edit_2017_2018_1$VIII14R5C1_new[is.na(Edit_2017_2018_1$VIII14R5C1_new)]<-0
+
+#VIII15R1C1, question 12
+Edit_2017_2018_1$VIII15R1C1_new<-as.character(Edit_2017_2018_1$VIII15R1C1)
+
+Edit_2017_2018_1$VIII15R1C1_new<-revalue(Edit_2017_2018_1$VIII15R1C1_new,c("6"="0","5"="1","4"="0.8","3"="0.6","2"="0.4","1"="0.2"))
+Edit_2017_2018_1$VIII15R1C1_new<-as.numeric(Edit_2017_2018_1$VIII15R1C1_new)
+
+#VIII16R1C1, question 13
+Edit_2017_2018_1$VIII16R1C1_new<-as.character(Edit_2017_2018_1$VIII16R1C1)
+
+Edit_2017_2018_1$VIII16R1C1_new<-revalue(Edit_2017_2018_1$VIII16R1C1_new,c("4"="0","3"="0.333","2"="0.666","1"="1"))
+Edit_2017_2018_1$VIII16R1C1_new<-as.numeric(Edit_2017_2018_1$VIII16R1C1_new)
+
+#VIII17R1C1, question 14
+Edit_2017_2018_1$VIII17R1C1_new<-as.character(Edit_2017_2018_1$VIII17R1C1)
+
+Edit_2017_2018_1$VIII17R1C1_new<-revalue(Edit_2017_2018_1$VIII17R1C1_new,c("4"="0","3"="0.333","2"="0.666","1"="1"))
+Edit_2017_2018_1$VIII17R1C1_new<-as.numeric(Edit_2017_2018_1$VIII17R1C1_new)
+
+#VIII18R1C1, question 15
+Edit_2017_2018_1$VIII18R1C1_new<-as.character(Edit_2017_2018_1$VIII18R1C1)
+
+Edit_2017_2018_1$VIII18R1C1_new<-revalue(Edit_2017_2018_1$VIII18R1C1_new,c("1"="1","2"="0.5","3"="0","4"="0"))
+Edit_2017_2018_1$VIII18R1C1_new<-as.numeric(Edit_2017_2018_1$VIII18R1C1_new)
+
+#VIII19R1C1, question 16
+Edit_2017_2018_1$VIII19R1C1_new<-as.character(Edit_2017_2018_1$VIII19R1C1)
+
+Edit_2017_2018_1$VIII19R1C1_new<-revalue(Edit_2017_2018_1$VIII19R1C1_new,c("1"="1","2"="0.5","3"="0","4"="0"))
+Edit_2017_2018_1$VIII19R1C1_new<-as.numeric(Edit_2017_2018_1$VIII19R1C1_new)
+
+#Edit_2017_2018_1$VIII7R7C1_new[is.na(Edit_2017_2018_1$VIII7R7C1_new)]<-0  # this should be optional.For example, If you don't run this line (putting #),
+#it keeps N.A in order to identify those cases with "Never"=0
+
+#To do a count for a indivudual column, put # in the last line:
+mytable <- table(Edit_2017_2018_1$VIII7R7C1_new)
+
+# 1:1181, 2:1602, 3:850, 4:1336, 5:2560.
+
+write_dta(Edit_2017_2018_1,"~/Google Drive/Internship_WB_Summer/Edit/DataEditM2017-2018/Edit 2017_2018_recoded.dta")
+
+knitr::opts_chunk$set(echo = TRUE)
+```
