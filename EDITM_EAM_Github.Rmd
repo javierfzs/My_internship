@@ -1,0 +1,496 @@
+---
+title: "Management and Organizational Practices Survey - Colombia 2017-2018"
+author: "Leonardo Iacovone / Javier Fernandez"
+date: "7/6/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE}
+
+##JAVIER FERNANDEZ AND LEONARDO IACOVONE###
+#install.packages("stargazer")
+library(tidyverse)
+library(ggplot2)
+library(stargazer)
+library(dplyr)
+library(kableExtra)
+library(xtable)
+library("knitr")
+library("papeR")
+library("devtools")
+require(plyr)
+
+library(haven)
+Edit_2017_2018_1 <- read_dta("~/Google Drive/Internship_WB_Summer/Edit/DataEditM2017-2018/Edit 2017_2018_recoded.dta")
+
+
+####Cleaning for managers-frequency review. If No key performance indicators (from question 2), question 3 will be zero
+#(if VIII5R1C1_new=0 (Dane:VIII5R1C1=5), VIII6R1C1_new,VIII7R1C1_new, VIII8R1C1_new should be = 0)
+
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII6R1C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII6R1C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII6R2C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII6R2C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII6R3C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII6R3C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII6R4C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII6R4C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII6R5C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII6R5C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII6R6C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII6R6C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII6R7C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII6R7C1_new))
+
+#Cleaning for no-managers-frequency-review. If No key performance indicators (from question 2), question 4 will be zero 
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII7R1C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII7R1C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII7R2C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII7R2C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII7R3C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII7R3C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII7R4C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII7R4C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII7R5C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII7R5C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII7R6C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII7R6C1_new))
+Edit_2017_2018_1 <- Edit_2017_2018_1 %>%
+  mutate(VIII7R7C1_new = ifelse(VIII5R1C1_new== 0, 0, VIII7R7C1_new))
+
+
+#### AVERAGE score for managers-frequency review, question 3
+
+Edit_2017_2018_1$VIII6_new_avg_score = rowMeans(Edit_2017_2018_1[,c(680,681,682,683,684,685,686)],na.rm = TRUE)
+
+#### AVERAGE score for no Managers-frequency review, question 4
+
+Edit_2017_2018_1$VIII7_new_avg_score = rowMeans(Edit_2017_2018_1[,c(687,688,689,690,691,692,693)],na.rm = TRUE)
+
+
+#### AVERAGE score for non-managers’ performance bonuses based on, question 9
+Edit_2017_2018_1$VIII12_new_avg_score = rowMeans(Edit_2017_2018_1[,c(700,701,702,703,704)],na.rm = TRUE)
+
+#### AVERAGE score for managers’ performance bonuses usually based on, question 11
+Edit_2017_2018_1$VIII14_new_avg_score = rowMeans(Edit_2017_2018_1[,c(706,707,708,709,710)],na.rm = TRUE)
+
+
+Edit_2017_2018_1$VIII10R1C1_new <- replace(Edit_2017_2018_1$VIII10R1C1_new, Edit_2017_2018_1$VIII10R1C1_new == 6, NA)
+
+#VIII19R1C1, question property
+Edit_2017_2018_1$property<-as.character(Edit_2017_2018_1$VIII1R1C1)
+Edit_2017_2018_1$property<-revalue(Edit_2017_2018_1$property,c("1"="Founder","2"="Founder's Familiy","3"="Other"))
+#Edit_2017_2018_1$property<-as.numeric(Edit_2017_2018_1$property)
+
+#this lines to identify number of column and variable
+#data.frame(colnames(Edit_2017_2018_1))
+
+#variable:column number:question number (1-16 - Bloom (2019))
+# VIII4R1C1_new=678=q1, VIII5R1C1_new=679=q2,VIII6_new_avg_score=694=q3,VIII7_new_avg_score=695=q4,VIII8R1C1_new=696=q5
+#VIII9R1C1_new=697=q6,VIII10R1C1_new=698=q7,VIII11R1C1_new=699=q8,VIII12_new_avg_score=716=q9,VIII13R1C1_new=705=q10
+# VIII14_new_avg_score=717=q11,VIII15R1C1_new=711=q12,VIII16R1C1_new=712=q13,VIII17R1C1_new=713=q14,
+#VIII18R1C1_new=714=q15,VIII19R1C1_new=715=q16
+
+# counting missing values accross 16 questions
+Edit_2017_2018_1$na_16_q<-rowSums(is.na(Edit_2017_2018_1[, c(678,679,694,695,696,697,698,699,716,705,717,711,712,713,714,715)]))
+
+#filtering the data set: From 16 Bloom Questions,at least 11 non-missing values (max 5 missing values)
+Edit_2017_2018_2 <- Edit_2017_2018_1[Edit_2017_2018_1$na_16_q <=5,]
+
+
+```
+
+
+```{r results="asis",echo=FALSE,warning=(FALSE),message=FALSE}
+
+#Management Score, Non-incentives and incentives questions
+
+# 1. Total Average (16 questions)
+Edit_2017_2018_2$Management = rowMeans(Edit_2017_2018_2[,c(678,679,694,695,696,697,698,699,716,705,717,711,712,713,714,715)],na.rm = TRUE)
+
+# 2.Non-incentives average (1-8 questions)
+
+Edit_2017_2018_2$avg_non_inc_q = rowMeans(Edit_2017_2018_2[,c(678,679,694,695,696,697,698,699)],na.rm = TRUE)
+
+# 3.Incentives average (9-16 questions)
+
+Edit_2017_2018_2$avg_inc_q = rowMeans(Edit_2017_2018_2[,c(716,705,717,711,712,713,714,715)],na.rm = TRUE)
+
+```
+
+Let's analyze Management and Organizational Practices Survey - MOPS questions. The 16 questions traditionally analyzed are: non-incentives (MOPS questions 1–8: monitoring and targets) and incentives (MOPS questions 9–16: bonus, promotion, and reassignment/dismissal practices). The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale following Bloom (2019).The EDIT data was recoded from categorical variables into a numerical variables in order to get a score.
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
+
+#Descriptive Statistics
+
+library(haven)
+#reading Annual Manufacturing Survey from Colombia
+Eam_2018_1 <- read_dta("~/Google Drive/Internship_WB_Summer/EAM/EAM_2018/EAM_2018_30june.dta")
+
+###proportion of multiplants
+count_nordemp_eam<-data.frame(count(Eam_2018_1,"nordemp"))
+
+count_nordemp_eam<-count_nordemp_eam %>%
+   mutate(Multiplant = if_else(freq >1, 1,0))
+
+### exporters###
+
+Edit_2017_2018_2<-Edit_2017_2018_2 %>%
+   mutate(Exporters = if_else(I3R2C2 >1, 1,0))
+
+####reshape
+
+#require(reshape2)
+#mat$id <- rownames(mat) 
+#melt(mat)
+
+##dataframe for stargazer
+df0<-data.frame(Edit_2017_2018_2$NORDEMP,Edit_2017_2018_2$Management,Edit_2017_2018_2$avg_non_inc_q,Edit_2017_2018_2$avg_inc_q,Edit_2017_2018_2$IV1R11C2,Edit_2017_2018_2$Exporters)
+
+colnames(df0)[1] <- "nordemp"
+colnames(df0)[2] <- "Management (1-16)"
+colnames(df0)[3] <- "No Incentives (1-8)"
+colnames(df0)[4] <- "Incentives (9-16)"
+colnames(df0)[5]<-"Size(Firm employment)"
+colnames(df0)[6]<-"Exporters"
+
+df0 <- merge(df0,count_nordemp_eam,by="nordemp",all=FALSE)
+
+df0=subset(df0, select = -c(nordemp,freq))
+
+stargazer(df0,
+          header = FALSE,
+          title = "Descriptive Statistics",
+          digits = 3,
+          df = FALSE)
+
+```
+
+
+The next histogram shows the distribution for magement score (16 questions). As you can see, the distribution is skewed to the left, where the total number of observations is 7,529. This histogram includes all observations with at least 11 non-missing responses to management questions.
+
+We use the Bloom (2019) methodology: "Questions 3, 4 and 5 are scored at 0 if missing, which typically arises from firms reporting “no performance indicators” to question 2 and skipping to question 6. The rationale for this is that firms with no performance indicators have no managerial or nonmanagerialreview of performance indicators, and have no performance display boards. For questions with multiple possible responses (those with “mark all that apply”) the average value was used".
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE, fig.show='hide',results='hide'}
+
+# Histogram Colombia - USA with only EDIT data
+
+my.hist1<-hist(Edit_2017_2018_2$Management, ylab ="Probability", breaks=20)
+
+my.hist1$counts
+mycount1<-data.frame(my.hist1$counts)
+
+score_bar<-data.frame(c("0.05","0.1","0.15","0.2","0.25","0.3","0.35","0.4","0.45","0.5","0.55","0.6","0.65","0.7","0.75","0.8","0.85","0.9","0.95","1"))
+colnames(score_bar)[1]<-"Score"
+usa_freq <-data.frame(c("0.0011","0.0016","0.0041","0.0131","0.0191","0.0251","0.0311","0.0451","0.0581", "0.0641", "0.0883", "0.0961", "0.1201","0.1161","0.1131","0.0951","0.0561","0.0221","0.0281","0.0024"))
+colnames(usa_freq)[1] <- "USA"
+col_freq1 <- prop.table(mycount1)
+colnames(col_freq1)[1] <- "Colombia"
+
+
+#df <- data.frame(, second_column)
+my_over_hist1<-data.frame(score_bar,usa_freq,col_freq1)
+
+my_over_hist1$Score<-as.numeric(as.character(unlist(my_over_hist1[[1]])))
+my_over_hist1$USA<-as.numeric(as.character(unlist(my_over_hist1[[2]])))
+my_over_hist1$Colombia<-as.numeric(as.character(unlist(my_over_hist1[[3]])))
+#typeof(my_over_hist$Colombia)
+
+```
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE}
+
+# Plot comparing USA and Colombia Scores
+
+library(ggplot2)
+
+ggplot(data=my_over_hist1,aes(x=Score))+
+  geom_bar(aes(y=Colombia),stat="identity",position ="identity",alpha=.5,fill='black',color='red') +
+  geom_bar(aes(y=USA),stat="identity",position ="identity",alpha=.5,fill='white',color='blue')+ 
+  labs(title = "Manegement - Colombia vs USA with only EDIT data",
+       x="Score: Colombia(red) - USA(blue)",
+       y="Share")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+The Colombian average management score (16 questions) is 0.367 meanwhile the U.S score is 0.615. The Non-incentive management score (1-8) is 0.474 (U.S:0.643 ) and incentives average (9-16) is 0.232 (U.S:0.583).
+
+# Annual Manufacturing Survey
+
+The next table shows the number of observations for each database and our estimates use the merge EDIT-EAM. 
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
+
+# observations
+
+#aggregating by nordemp and summing dpto or more.
+# As a result, the new variable is Group.1 (KEY) instead nordemp (Nominal change) and the aggregated variable is x instead dpto.
+Eam_2018_2<-aggregate(list(Eam_2018_1$CONSIN2, Eam_2018_1$ACTIVFI,Eam_2018_1$PERTOTAL,Eam_2018_1$PRODBR2,Eam_2018_1$c7c4r14,Eam_2018_1$VALAGRI), by=list(Eam_2018_1$nordemp),FUN=sum,na.rm=TRUE) #, na.rm=FALSE
+
+#ascendent order on Group.1, it is optional becaise the aggregate function returns a ascendent Group.1 (KEY) 
+#Eam_2018_3<- Eam_2018_2[order(Eam_2018_2$x),]
+#testing a specific value on a variable
+#any(Eam_2018_3$Group.1==141465)
+
+# returns the variable names easily
+#data.frame(colnames(Eam_2018_2))
+
+#changing names
+colnames(Eam_2018_2)[1] <- "NORDEMP"
+colnames(Eam_2018_2)[2] <- "intinput"
+colnames(Eam_2018_2)[3] <- "fixedassets"
+colnames(Eam_2018_2)[4] <- "empltot"
+colnames(Eam_2018_2)[5] <- "valprod"
+colnames(Eam_2018_2)[6] <- "valitc"
+colnames(Eam_2018_2)[7]<-"valueadded"
+
+
+#typeof(Eam_2018_2$dpto)
+#typeof(Eam_2018_2$periodo)
+#summarise(Eam_2018_2)
+
+#Natural join (all=FALSE, only intersection)
+total <- merge(Edit_2017_2018_2,Eam_2018_2,by="NORDEMP",all=FALSE)
+
+n<-data.frame(Database=c("EDIT 1:All observations","EDIT 2:At least 11 non-missing values","EAM 1:All observations","EAM 2:Collapsed data","Merge EDIT 2 - EAM 2"),n=c(nrow(Edit_2017_2018_1),nrow(Edit_2017_2018_2),nrow(Eam_2018_1),nrow(Eam_2018_2),nrow(total)))
+#kable(n)%>%
+#  kable_styling(position = "center")
+
+stargazer(n,
+          header = FALSE,
+          title = "Databases",
+          digits = 3,
+          df = FALSE,
+          summary=FALSE,
+          rownames = FALSE)
+
+
+#install.packages("stargazer")
+```
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis", fig.show='hide',results='hide'}
+
+
+my.hist2<-hist(total$Management, ylab ="Probability", breaks=20)
+
+my.hist2$counts
+mycount2<-data.frame(my.hist2$counts)
+col_freq2 <- prop.table(mycount2)
+colnames(col_freq2)[1] <- "Colombia"
+
+#df <- data.frame(, second_column)
+my_over_hist2<-data.frame(score_bar,usa_freq,col_freq2)
+
+my_over_hist2$Score<-as.numeric(as.character(unlist(my_over_hist2[[1]])))
+my_over_hist2$USA<-as.numeric(as.character(unlist(my_over_hist2[[2]])))
+my_over_hist2$Colombia<-as.numeric(as.character(unlist(my_over_hist2[[3]])))
+
+
+```
+
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
+
+# Histogram Colombia - USA with merge between EDIT - EAM 
+
+library(ggplot2)
+
+ggplot(data=my_over_hist2,aes(x=Score))+
+  geom_bar(aes(y=Colombia),stat="identity",position ="identity",alpha=.5,fill='black',color='red') +
+  geom_bar(aes(y=USA),stat="identity",position ="identity",alpha=.5,fill='white',color='blue')+ 
+  labs(title = "Manegement - Colombia vs USA with merge EDIT - EAM data",
+       x="Score: Colombia(red) - USA(blue)",
+       y="Share")+theme(plot.title = element_text(hjust = 0.5))
+```
+
+The plot indicates a positive relationship among the number of employees and our management score: 
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
+
+#listing variables to plot (Productivity,Exports,Profit, R&D and i) and some? which?
+
+total$logempltot2<-log(total$empltot2)
+total$valprod<-log(total$valprod/total$empltot)
+
+
+#### Mangement and Employment###
+#tranformation of employment= A company should have at least 1 employment. Just 3 cases are adjusted, from 0 to 1
+total<-total%>%
+  mutate(empltot2=ifelse(empltot==0,1,total$empltot))
+total$logempltot2<-log(total$empltot2)
+
+
+##### ggplot
+
+p <- ggplot(data = total,                # specify dataset
+            aes(x = Management, y = logempltot2))+labs(x="Management",y="Log Employment", title="Firm size rises with Management -Non-Linear fit") + # Age on x-, Raven on y-axis
+  geom_point(pch = 1,size=0.05)+theme(plot.title = element_text(hjust = 0.5))
+
+q1 <- p +
+  geom_smooth() # add scatterplot smoother
+q1
+
+```
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
+
+install.packages("StatMeasures")
+library(StatMeasures)
+
+#### Decile graphs######
+total$decilRDi<-ntile(total$II1R10C2, 10)
+total$DecilValExp<-ntile(total$I3R2C2,10)
+total$PRODBR2<-
+
+
+test_quant <- test %>% 
+  group_by(is_open) %>% 
+  do(x = seq(0, 1, 0.1),
+     quant = quantile(.$stars, seq(0, 1, 0.1))) %>% 
+  unnest()
+
+ggplot(test_quant, aes(as.factor(x), quant, fill = is_open)) + 
+   geom_col(position = 'dodge')
+
+```
+
+
+Suppose that the firm production function is:
+
+$$Y_{i} = A_{i}K_{i}^{\alpha}L_{i}^{\beta}I^{\gamma}e^{\delta M_{i}}e^{\mu X_{i}} + \varepsilon_{i}$$
+Where $Y_{i}$:Production of firm i
+$A_{i}$: Total factor productivity (Excluding Management Practices)
+$K_{i}$:Fixed assets at final of 2018
+$L_{i}$:Labor inputs: the total number of employees of firm i
+$I_{i}$:Intermediate inputs
+$X_{i}$:Vector of additional factors: the percent of staff with college degree
+$M_{i}$: Management score (1-16)
+
+
+Dividing by labor and taking logs we can rewrite this in a form to estimate on the
+data:
+
+$$log\frac{Y_{i}}{L_{i}} = \alpha log\frac{K_{i}}{L_{i}} + \gamma log \frac{I_{i}}{L_{i}} + (\alpha+ \beta  +\gamma)log L_{i} +\delta M_{i} + \mu X_{i} + u_{i} $$
+We calculate this equation by estimating an OLS regression
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
+
+
+#########################REGRESSIONS IN LOGARITHMS#############
+
+#List of variables for Manegement score and performance
+#With Logarithms 
+#1. staff_with_college_degree: percent of staff with college degree
+total$staff_with_college_degree<-total$IV1R4C2/total$IV1R11C2
+#2. Log (production/employees)
+total$lnprod<-log(total$valprod/total$empltot)
+#3. Log (total employment):lnempltot
+total$lnempltot<-log(total$empltot)
+#4. Total Score (1-16): total$Management
+#5. Log (fixed assets / employees):lnfape
+total$lnfape<-log(total$fixedassets/total$empltot)
+#6.Log (intermediate inputs/employees): lniipe
+total$lniipe<-log(total$intinput/total$empltot)
+
+
+#List of variables for Drivers of Productivity variation
+#With logarithms 
+#0. Log (Value Added/Employees)
+total$log_Value_Added_per_Employee<-log(total$valueadded/total$empltot)
+#1.Total Score (1-16): total$Management
+#2.Log (Investment on R&D and innovations): total$II1R10C2
+total$log_RD_innovation<-log(total$II1R10C2)
+#3.Log (Investment on ITC) - 2018:total$II1R4C2
+total$logICT<-log(total$II1R4C2)
+
+
+#cleaning data base due we run logarithms
+totalog1<-total[!(total$empltot=="0" | total$fixedassets=="0" |total$IV1R11C2=="0"| total$valprod=="0"),]
+
+
+reg_msplog <-lm(lnprod ~ lnfape+lniipe+empltot+Management+staff_with_college_degree,data=totalog1)
+#summary(reg_msplog)
+
+
+stargazer(reg_msplog,
+          header = FALSE,
+          title = "Management Score and Performance",
+          dep.var.labels = "Log(Production/employees)",
+          covariate.labels =c("Log (fixed assets / employees)", "Log (Intermediate inputs/employees)","log (Employees)","Managememnt","Percent of staff with college degree"),
+          digits = 3)
+
+
+```
+
+We regress the value added per employee on: management, logarithm of investement on reserach, development and innovation, education variable, and logarithm of investment on information and communications technology.
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
+
+# Regression for Drivers of Productivity Variation (dpv)
+
+totalog2<-total[!(total$IV1R11C2=="0"| total$valueadded=="0"|total$II1R10C2=="0"|total$II1R4C2=="0"),]
+
+
+reg_dpvlog<-lm(log_Value_Added_per_Employee ~ Management+log_RD_innovation+logICT+staff_with_college_degree, data =totalog2)
+
+
+stargazer(reg_dpvlog,
+          header = FALSE,
+          title = "Drivers of Productivity Variation",
+#          dep.var.labels ="Log(Value Added /employees)",
+#          covariate.labels =c("Managememnt Score","Log (Investment on R&D and innovations)", "Log(Investment on #ITC","Percent of staff #with college #degree"),
+          digits = 3)
+
+
+```
+
+# Appendix
+
+The following graphsuse data from Technology, Innovation and Development Survey (EDIT, acronym in Spanish) for Colombia 2017-2018 and manufacturing sector, with special emphasis on the Management and Organizational Practices questions. The EDIT includes 3 extra questions(Largest shareholder, Manager, gender) to the 16 that Bloom (2019)^[Bloom, Nicholas, Erik Brynjolfsson, Lucia Foster, Ron Jarmin, Megha Patnaik, Itay Saporta Eksten, and John Van Reenen.2019. What Drives Differences in Management Practices?. American Economic Review 2019, 109(5): 1648–1683] analyzes, for a total of 19 questions. The first three questions are:
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE, fig.width = 3, fig.height=3}
+
+#graphs (three first questions)
+
+# 1. Property
+
+ggplot(Edit_2017_2018_2) +
+  geom_bar(aes(x =property,group=1),  fill = "red") +
+  labs(title = "Graph1.Who is the largest shareholder?",
+       x="Largest shareholder",
+       y="Frequency")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 8, face = "bold"))
+
+
+# 2. Manager and property
+
+Edit_2017_2018_2<-Edit_2017_2018_2%>%
+  mutate(manager=ifelse(VIII2R1C1==1,"Yes","No"))
+
+ggplot(Edit_2017_2018_2) +
+  geom_bar(aes(x =factor(manager),y=..prop..,group=1),  fill = "yellow") +
+  labs(title = "Is the manager the same founder or founder's family member?",
+       x="Manager",
+       y="Proportion")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 6, face = "bold"))
+
+
+# 3. Gender
+
+Edit_2017_2018_2<-Edit_2017_2018_2%>%
+  mutate(gender=ifelse(VIII3R1C1==1,"Man","Woman"))
+
+ggplot(Edit_2017_2018_2) +
+  geom_bar(aes(x =factor(gender),y=..prop..,group=1),  fill = "blue") +
+  labs(title = "Manager Gender",
+       x="Gender",
+       y="Proportion")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 8, face = "bold"))
+
+
+```
+
+
