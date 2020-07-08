@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE}
 
-##JAVIER FERNANDEZ SALAMANCA estpa alias Don Javi AND LEONARDO IACOVONE###
+
 #install.packages("stargazer")
 library(tidyverse)
 library(ggplot2)
@@ -231,7 +231,7 @@ The next table shows the number of observations for each database and our estima
 
 #aggregating by nordemp and summing dpto or more.
 # As a result, the new variable is Group.1 (KEY) instead nordemp (Nominal change) and the aggregated variable is x instead dpto.
-Eam_2018_2<-aggregate(list(Eam_2018_1$CONSIN2, Eam_2018_1$ACTIVFI,Eam_2018_1$PERTOTAL,Eam_2018_1$PRODBR2,Eam_2018_1$c7c4r14,Eam_2018_1$VALAGRI), by=list(Eam_2018_1$nordemp),FUN=sum,na.rm=TRUE) #, na.rm=FALSE
+Eam_2018_2<-aggregate(list(Eam_2018_1$CONSIN2, Eam_2018_1$ACTIVFI,Eam_2018_1$PERTOTAL,Eam_2018_1$PRODBR2,Eam_2018_1$c7c4r14,Eam_2018_1$VALAGRI,Eam_2018_1$PRESPYTE,Eam_2018_1$SALPEYTE,Eam_2018_1$VALORVEN), by=list(Eam_2018_1$nordemp),FUN=sum,na.rm=TRUE) #, na.rm=FALSE
 
 #ascendent order on Group.1, it is optional becaise the aggregate function returns a ascendent Group.1 (KEY) 
 #Eam_2018_3<- Eam_2018_2[order(Eam_2018_2$x),]
@@ -249,6 +249,9 @@ colnames(Eam_2018_2)[4] <- "empltot"
 colnames(Eam_2018_2)[5] <- "valprod"
 colnames(Eam_2018_2)[6] <- "valitc"
 colnames(Eam_2018_2)[7]<-"valueadded"
+colnames(Eam_2018_2)[8]<-"benefits"
+colnames(Eam_2018_2)[9]<-"monthly_wages"
+colnames(Eam_2018_2)[10]<-"sales"
 
 
 #typeof(Eam_2018_2$dpto)
@@ -313,20 +316,17 @@ The plot indicates a positive relationship among the number of employees and our
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
-#listing variables to plot (Productivity,Exports,Profit, R&D and i) and some? which?
-
-total$logempltot2<-log(total$empltot2)
-total$valprod<-log(total$valprod/total$empltot)
-
-
 #### Mangement and Employment###
 #tranformation of employment= A company should have at least 1 employment. Just 3 cases are adjusted, from 0 to 1
 total<-total%>%
   mutate(empltot2=ifelse(empltot==0,1,total$empltot))
 total$logempltot2<-log(total$empltot2)
 
+#creating the log employment adjusted
+total$logempltot2<-log(total$empltot2)
 
-##### ggplot
+
+##### ggplot#####
 
 p <- ggplot(data = total,                # specify dataset
             aes(x = Management, y = logempltot2))+labs(x="Management",y="Log Employment", title="Firm size rises with Management -Non-Linear fit") + # Age on x-, Raven on y-axis
@@ -340,23 +340,50 @@ q1
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
-install.packages("StatMeasures")
+#install.packages("StatMeasures")
 library(StatMeasures)
+#install.packages("scales")
+library(scales)
+
+#listing variables to plot (Productivity,Exports, R&D and i,Profit,) and some? which?
+#1. Productivity (Production/employees)
+total$productivity<-total$valueadded/total$empltot2
+total$productivity3<-(total$productivity)/1000
+#2. Value of Exports: I3R2C2
+total$exports_millions<-(total$I3R2C2)/1000
+#3. Investement on R&D and Innovation: II1R10C2
+total$rdi_millions<-(total$II1R10C2)/1000
+#4. Operating profit
+#a. total wages
+total$totalwages<-total$benefits+total$monthly_wages
+#b. Total expenses
+total$totalexpenses<-total$totalwages+total$intinput
+#Operating profit
+total$opprofit<-total$valprod-total$totalexpenses
+total$opprofit_millions<-(total$opprofit)/1000
+
+#summary(total$valueadded)
 
 #### Decile graphs######
-total$decilRDi<-ntile(total$II1R10C2, 10)
-total$DecilValExp<-ntile(total$I3R2C2,10)
-total$PRODBR2<-
+total$decilmanagement<-ntile(total$Management,10)
+
+bar1<-ggplot(total, aes(x=decilmanagement, y=productivity3))+labs(x="Decile of Management", y="Labor Productivity")+ stat_summary(fun = "mean",geom = "bar")
+
+bar2<-ggplot(total, aes(x=decilmanagement, y=exports_millions))+ 
+  labs(x="Decile of Management", y="Exports") +stat_summary(fun = "mean", geom = "bar")
+
+bar3<-ggplot(total, aes(x=decilmanagement, y=rdi_millions))+ 
+  labs(x="Decile of Management", y="Investment on R&D+i") +stat_summary(fun = "mean", geom = "bar")
+  
+bar4<-ggplot(total, aes(x=decilmanagement, y=opprofit_millions))+ 
+  labs(x="Decile of Management", y="Operating Profit") +stat_summary(fun = "mean", geom = "bar")
+
+#install.packages("ggpubr")
+library(ggpubr)
+ggarrange(bar1, bar2, bar3 , bar4 +rremove("x.text"),
+          ncol = 2, nrow = 2)+theme(plot.title = element_text(hjust = 0.5))
 
 
-test_quant <- test %>% 
-  group_by(is_open) %>% 
-  do(x = seq(0, 1, 0.1),
-     quant = quantile(.$stars, seq(0, 1, 0.1))) %>% 
-  unnest()
-
-ggplot(test_quant, aes(as.factor(x), quant, fill = is_open)) + 
-   geom_col(position = 'dodge')
 
 ```
 
@@ -434,10 +461,10 @@ We regress the value added per employee on: management, logarithm of investement
 
 # Regression for Drivers of Productivity Variation (dpv)
 
-totalog2<-total[!(total$IV1R11C2=="0"| total$valueadded=="0"|total$II1R10C2=="0"|total$II1R4C2=="0"),]
+totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"|total$II1R10C2=="0"|total$II1R4C2=="0"),]
 
 
-reg_dpvlog<-lm(log_Value_Added_per_Employee ~ Management+log_RD_innovation+logICT+staff_with_college_degree, data =totalog2)
+reg_dpvlog<-lm(log_Value_Added_per_Employee ~ Management+log_RD_innovation+logICT+staff_with_college_degree, data =totalog2,)
 
 
 stargazer(reg_dpvlog,
