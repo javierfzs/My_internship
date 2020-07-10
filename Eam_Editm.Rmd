@@ -2,7 +2,11 @@
 title: "Management and Organizational Practices Survey - Colombia 2017-2018"
 author: "Leonardo Iacovone / Javier Fernandez"
 date: "7/6/2020"
-output: pdf_document
+output:
+  pdf_document: default
+  word_document: default
+  html_document:
+    df_print: paged
 ---
 
 ```{r setup, include=FALSE}
@@ -13,6 +17,25 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 #install.packages("stargazer")
+#install.packages("tidyverse")
+#install.packages("ggplot2")
+#install.packages("dplyr")
+#install.packages("kableExtra")
+#install.packages("xtable")
+#install.packages("knitr")
+#install.packages("papeR")
+#install.packages("devtools")
+#install.packages("tinytex")
+#tinytex::install_tinytex()
+#tinytex:::install_prebuilt()
+#tinytex::install_tinytex()
+#devtools::install_github('yihui/tinytex')
+#tinytex::reinstall_tinytex()
+library(tinytex)
+#update.packages(ask = FALSE, checkBuilt = TRUE)
+#tinytex::tlmgr_update()
+options(tinytex.verbose = TRUE)
+
 library(tidyverse)
 library(ggplot2)
 library(stargazer)
@@ -100,6 +123,7 @@ Edit_2017_2018_1$na_16_q<-rowSums(is.na(Edit_2017_2018_1[, c(678,679,694,695,696
 
 #filtering the data set: From 16 Bloom Questions,at least 11 non-missing values (max 5 missing values)
 Edit_2017_2018_2 <- Edit_2017_2018_1[Edit_2017_2018_1$na_16_q <=5,]
+
 
 
 ```
@@ -453,7 +477,8 @@ total$log_RD_innovation<-log(total$II1R10C2)
 #3.Log (Investment on ITC/Emp) - 2018:total$II1R4C2/total$empltot
 total$logICT_per_Employee<-log(total$II1R4C2/total$empltot)
 #4. R&Di/emp=II1R10C2/empltot
-total$RDi_per_empl=total$II1R10C2/total$empltot
+total$RDi_m<-total$II1R10C2/1000
+total$RDi_m_per_empl=total$RDi_m/total$empltot
 
 
 #cleaning data base due we run logarithms
@@ -574,7 +599,7 @@ totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"|
 #Omitting special cases: NA, inf
 totalog3<-totalog1[!(total$valueadded=="0"|total$sales=="0"),]
 totalog3<-subset(totalog3,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales,lnprofoversales))
-totalog4<-subset(totalog2,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales,lnprofoversales,empltot,RDi_per_empl))
+totalog4<-subset(totalog2,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales,lnprofoversales,empltot,RDi_m_per_empl))
 totalog3 <- na.omit(totalog3)
 totalog4 <- na.omit(totalog4)
 totalog4<-NaRV.omit(totalog4)
@@ -605,28 +630,30 @@ m3 <- plm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degre
 m4<-lm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog3)
 
 
-#FE:yes, with ciiu4. Dependent Variable:Log(Profits/sales)
-m5 <- plm(RDi_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree, 
+#FE:yes, with ciiu4. Dependent Variable:RDi
+m5 <- plm(RDi_m_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree, 
                       index = c("ciiu4"),
                       effect = "individual", 
                       model = "within",
                       data = totalog4)
 
 #FE:No
-m6<-lm(RDi_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog4)
+m6<-lm(RDi_m_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog4)
 
 stargazer(m1,m2,m3,m4,m5,m6,
           header = FALSE,
           title = "Plant Management Scores and Performance",
           covariate.labels = c("Management", "Log(Capital/Emp)","Log(Emp)","College degree"),
-          dep.var.labels = c("Log(VA/Emp)","(Profits/sales)","R&D+i/Emp"),
+          dep.var.labels = c("Log(VA/Emp)","(Profits/sales)","RD+i/Emp"),#,
           model.names = FALSE,
           omit.stat = c("ser","f","adj.rsq"), #"rsq", 
           omit="Constant",
           digits = 3,
           notes.align = "l")
 
-#tinytex::install_tinytex()
+#devtools::install_github('yihui/tinytex')
+#install.packages("tinytex")
+
 
 ```
 
@@ -657,6 +684,8 @@ ggplot(Edit_2017_2018_2) +
   labs(title = "Is the manager the same founder or founder's family member?",
        x="Manager",
        y="Proportion")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 6, face = "bold"))
+
+
 
 # 3. Gender
 
