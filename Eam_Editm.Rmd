@@ -412,6 +412,8 @@ bar3<-ggplot(total, aes(x=decilmanagement, y=rdi_millions))+
 bar4<-ggplot(total, aes(x=decilmanagement, y=opprofit_millions))+ 
   labs(x="Decile of Management", y="Operating Profit") +stat_summary(fun = "mean", geom = "bar")
 
+
+
 #install.packages("ggpubr")
 library(ggpubr)
 ggarrange(bar1, bar2, bar3 , bar4 +rremove("x.text"),
@@ -524,62 +526,16 @@ stargazer(reg_dpvlog,
 ```
 
 
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
-```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis",fig.show='hide',results='hide'}
-
+#install.packages("IDPmisc")
+library(IDPmisc)
 library(lmtest)
 library(estimatr)
 library(plm)
 library(fastDummies)
 
-data("mtcars")
-
-#FE:yes
-r1 <- plm(mpg ~ disp + hp, 
-                      index = c("cyl"),
-                      effect = "individual", 
-                      title = "FE:Yes",
-                      model = "within",
-                      data = mtcars)
-
-
-results <- fastDummies::dummy_cols(mtcars,select_columns ="cyl")
-#results <- fastDummies::dummy_cols(results,select_columns ="gear")
-
-#FE:No
-r2<-lm(mpg ~ disp + hp,data = results,title = "FE:No")#+cyl_6+cyl_8,
-
-#FE:yes
-r3 <- plm(wt ~ disp + hp, 
-                      index = c("cyl"),
-                      effect = "individual", 
-                      model = "within",
-                      data = mtcars)
-
-#FE:No
-r4 <- lm(wt ~ disp + hp,data = results)#+cyl_6+cyl_8
-
-
-stargazer(r1,r2,r3,r4,
-          header = FALSE,
-          title = "Mpg versus disp hp cyle and gear",
-          covariate.labels = c("Temperature", "Wind speed"),
-          dep.var.labels = c("milles per gallon","worse tower"),
-          omit = c("cyl","Constant"),
-          model.names = FALSE,
-          omit.stat = c("rsq", "f","ser","adj.rsq"),
-          digits = 3,
-          notes.align = "l")
-
-
-```
-
-```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
-
-#install.packages("IDPmisc")
-library(IDPmisc)
-
-# ELISTING VARIABLES FOR FIXED EFFECTS
+# LISTING VARIABLES FOR FIXED EFFECTS
 #ciiu4 with two first digits
 total$ciiu4_2_d<- substr(total$ciiu4, start = 1, stop = 2)
 
@@ -607,52 +563,71 @@ totalog4<-NaRV.omit(totalog4)
 
 #totalog4
 
+
+```
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
+
 #FE:yes, with ciiu4. Dependent Variable: Log (Value Added/Employees)
 
-m1 <- plm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_with_college_degree, 
+m13 <- plm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_with_college_degree, 
                       index = "ciiu4",
                       effect = "individual", 
                       model = "within",
                       data = totalog3)
 
+m14 <- plm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_with_college_degree, 
+                      index = "dpto",
+                      effect = "individual", 
+                      model = "within",
+                      data = totalog3)
 #FE:No
-m2<-lm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog3)
+m15<-lm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog3)
 
 
 #FE:yes, with ciiu4. Dependent Variable:Log(Profits/sales)
-m3 <- plm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree, 
+m16 <- plm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree, 
                       index = c("ciiu4"),
                       effect = "individual", 
                       model = "within",
                       data = totalog3)
 
+m17 <- plm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree, 
+                      index = c("dpto"),
+                      effect = "individual", 
+                      model = "within",
+                      data = totalog3)
 #FE:No
-m4<-lm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog3)
+m18<-lm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog3)
 
 
 #FE:yes, with ciiu4. Dependent Variable:RDi
-m5 <- plm(RDi_m_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree, 
+m19 <- plm(RDi_m_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree, 
                       index = c("ciiu4"),
                       effect = "individual", 
                       model = "within",
                       data = totalog4)
 
-#FE:No
-m6<-lm(RDi_m_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog4)
+#FE:yes, with ciiu4. Dependent Variable:RDi
+m20 <- plm(RDi_m_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree, 
+                      index = c("dpto"),
+                      effect = "individual", 
+                      model = "within",
+                      data = totalog4)
 
-stargazer(m1,m2,m3,m4,m5,m6,
+#FE:No
+m21<-lm(RDi_m_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog4)
+
+stargazer(m13,m14,m15,m16,m17,m18,m19,m20,m21,
           header = FALSE,
           title = "Plant Management Scores and Performance",
-          covariate.labels = c("Management", "Log(Capital/Emp)","Log(Emp)","College degree"),
+          covariate.labels = c("Management", "Ln(Cap/Emp)","Ln(Emp)","Degree"),
           dep.var.labels = c("Log(VA/Emp)","(Profits/sales)","RD+i/Emp"),#,
           model.names = FALSE,
           omit.stat = c("ser","f","adj.rsq"), #"rsq", 
           omit="Constant",
-          digits = 3,
+          digits = 2,
           notes.align = "l")
-
-#devtools::install_github('yihui/tinytex')
-#install.packages("tinytex")
 
 
 ```
@@ -662,41 +637,47 @@ stargazer(m1,m2,m3,m4,m5,m6,
 
 The following graphsuse data from Technology, Innovation and Development Survey (EDIT, acronym in Spanish) for Colombia 2017-2018 and manufacturing sector, with special emphasis on the Management and Organizational Practices questions. The EDIT includes 3 extra questions(Largest shareholder, Manager, gender) to the 16 that Bloom (2019)^[Bloom, Nicholas, Erik Brynjolfsson, Lucia Foster, Ron Jarmin, Megha Patnaik, Itay Saporta Eksten, and John Van Reenen.2019. What Drives Differences in Management Practices?. American Economic Review 2019, 109(5): 1648–1683] analyzes, for a total of 19 questions. The first three questions are:
 
-```{r echo=FALSE,warning=(FALSE),message=FALSE, fig.width = 3, fig.height=3}
+```{r echo=FALSE,warning=(FALSE),message=FALSE}
+#fig.width = 2.5, fig.height=2.5
 
 #graphs (three first questions)
 
 # 1. Property
 
-ggplot(Edit_2017_2018_2) +
-  geom_bar(aes(x =property,group=1),  fill = "red") +
+q1<-ggplot(Edit_2017_2018_2) +
+  geom_bar(aes(x =property,group=1)) +
   labs(title = "Graph1.Who is the largest shareholder?",
-       x="Largest shareholder",
-       y="Frequency")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 8, face = "bold"))
+       y="Frequency")+theme(plot.title = element_text(size = 8, face = "bold"))+theme(plot.title = element_text(hjust = 0.3))
+
+#q1
 
 # 2. Manager and property
 
 Edit_2017_2018_2<-Edit_2017_2018_2%>%
   mutate(manager=ifelse(VIII2R1C1==1,"Yes","No"))
 
-ggplot(Edit_2017_2018_2) +
-  geom_bar(aes(x =factor(manager),y=..prop..,group=1),  fill = "yellow") +
+q2<-ggplot(Edit_2017_2018_2) +
+  geom_bar(aes(x =factor(manager),y=..prop..,group=1)) +
   labs(title = "Is the manager the same founder or founder's family member?",
-       x="Manager",
-       y="Proportion")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 6, face = "bold"))
+       y="Proportion",x="Manager")+theme(plot.title = element_text(size = 6, face = "bold"))+theme(plot.title = element_text(hjust = 0.3))
 
-
+#q2
 
 # 3. Gender
 
 Edit_2017_2018_2<-Edit_2017_2018_2%>%
   mutate(gender=ifelse(VIII3R1C1==1,"Man","Woman"))
 
-ggplot(Edit_2017_2018_2) +
-  geom_bar(aes(x =factor(gender),y=..prop..,group=1),  fill = "blue") +
+q3<-ggplot(Edit_2017_2018_2) +
+  geom_bar(aes(x =factor(gender),y=..prop..,group=1)) +
   labs(title = "Manager Gender",
        x="Gender",
        y="Proportion")+theme(plot.title = element_text(hjust = 0.5))+theme(plot.title = element_text(size = 8, face = "bold"))
+
+#q3
+
+ggarrange(q1, q2, q3 +rremove("x.text"),
+        ncol = 2, nrow = 2,widths = 0.5,heights = 0.5)+theme(plot.title = element_text(hjust = 0.5))
 
 
 ```
