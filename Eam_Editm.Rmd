@@ -46,6 +46,13 @@ library("knitr")
 library("papeR")
 library("devtools")
 require(plyr)
+#install.packages("IDPmisc")
+library(IDPmisc)
+library(lmtest)
+library(estimatr)
+library(plm)
+library(fastDummies)
+
 
 library(haven)
 Edit_2017_2018_1 <- read_dta("~/Google Drive/Internship_WB_Summer/Edit/DataEditM2017-2018/Edit 2017_2018_recoded.dta")
@@ -380,7 +387,7 @@ library(scales)
 
 ##############BAR GRAPHS##################
 #listing variables to plot (Productivity,Exports, R&D and i,Profit,) and some? which?
-#1. Productivity (Production/employees)
+#1. Productivity (value added//employees)
 total$productivity<-total$valueadded/total$empltot2
 total$productivity3<-(total$productivity)/1000
 #2. Value of Exports: I3R2C2
@@ -395,6 +402,12 @@ total$totalexpenses<-total$totalwages+total$intinput
 #Operating profit
 total$opprofit<-total$valprod-total$totalexpenses
 total$opprofit_millions<-(total$opprofit)/1000
+# 5. intellectual property registers
+total$ipr<-total$VI1R8C2
+# 6. Wage/Empl - 2018
+total$wage_per_emp<-total$totalwages/total$empltot
+
+
 
 #summary(total$valueadded)
 
@@ -404,20 +417,25 @@ total$decilmanagement<-ntile(total$Management,10)
 bar1<-ggplot(total, aes(x=decilmanagement, y=productivity3))+labs(x="Decile of Management", y="Labor Productivity")+ stat_summary(fun = "mean",geom = "bar")
 
 bar2<-ggplot(total, aes(x=decilmanagement, y=exports_millions))+ 
-  labs(x="Decile of Management", y="Exports") +stat_summary(fun = "mean", geom = "bar")
+  labs(x="Decile of Management", y="Av. Exports") +stat_summary(fun = "mean", geom = "bar")
 
 bar3<-ggplot(total, aes(x=decilmanagement, y=rdi_millions))+ 
-  labs(x="Decile of Management", y="Investment on R&D+i") +stat_summary(fun = "mean", geom = "bar")
+  labs(x="Decile of Management", y=" Av. R&D+i") +stat_summary(fun = "mean", geom = "bar")
   
 bar4<-ggplot(total, aes(x=decilmanagement, y=opprofit_millions))+ 
-  labs(x="Decile of Management", y="Operating Profit") +stat_summary(fun = "mean", geom = "bar")
+  labs(x="Decile of Management", y="Av. Operating Profit") +stat_summary(fun = "mean", geom = "bar")
 
+bar5<-ggplot(total, aes(x=decilmanagement, y=ipr))+ 
+  labs(x="Decile of Management", y="Av. IP registers") +stat_summary(fun = "mean", geom = "bar")
+
+bar6<-ggplot(total, aes(x=decilmanagement, y=wage_per_emp))+ 
+  labs(x="Decile of Management", y="Av.(Wage/Emp)") +stat_summary(fun = "mean", geom = "bar")
 
 
 #install.packages("ggpubr")
 library(ggpubr)
-ggarrange(bar1, bar2, bar3 , bar4 +rremove("x.text"),
-          ncol = 2, nrow = 2)+theme(plot.title = element_text(hjust = 0.5))
+ggarrange(bar1, bar2, bar3 , bar4, bar5, bar6+rremove("x.text"),
+          ncol = 2, nrow = 3)+theme(plot.title = element_text(hjust = 0.5))
 
 
 
@@ -474,53 +492,83 @@ total$lnprofoversales<-log(total$profoversales)
 #0. Log (Value Added/Employees)
 total$log_Value_Added_per_Employee<-log(total$valueadded/total$empltot)
 #1.Total Score (1-16): total$Management
-#2.Log (Investment on R&D and innovations): total$II1R10C2
-total$log_RD_innovation<-log(total$II1R10C2)
+#2. R&Di/emp=II1R10C2/empltot
+total$RDi_m<-total$II1R10C2/1000
+total$RDi_m_per_empl=(total$RDi_m/total$empltot)
+total$RDi_m_per_empl1=(total$RDi_m_per_empl)+1
+total$lnRDi_m_per_empl1=log(total$RDi_m_per_empl1) ####This the variable for R&D
 #3.Log (Investment on ITC/Emp) - 2018:total$II1R4C2/total$empltot
 total$logICT_per_Employee<-log(total$II1R4C2/total$empltot)
-#4. R&Di/emp=II1R10C2/empltot
-total$RDi_m<-total$II1R10C2/1000
-total$RDi_m_per_empl=total$RDi_m/total$empltot
+
 
 
 #cleaning data base due we run logarithms
 totalog1<-total[!(total$empltot=="0" | total$fixedassets=="0" |total$IV1R11C2=="0"| total$valprod=="0"),]
+totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"|total$II1R4C2=="0"),]#|total$II1R10C2=="0"
 
 
-reg_msplogprod <-lm(lnprod ~ lnfape+lniipe+empltot+Management+staff_with_college_degree,data=totalog1)
-reg_msplogsal <-lm(lnsales ~ lnfape+lniipe+empltot+Management+staff_with_college_degree,data=totalog1)
-#summary(reg_msplog)
+###########  Plant Management Scores and Performance (Bloom, 2019: Table 1)
 
-stargazer(reg_msplogprod,reg_msplogsal,
+#Log(Production/employees)
+
+m1 <- plm(lnprod ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+                      index = "ciiu4",
+                      effect = "individual", 
+                      model = "within",
+                      data = totalog1)
+
+m2 <- plm(lnprod ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+                      index = "dpto",
+                      effect = "individual", 
+                      model = "within",
+                      data = totalog1)
+
+m3<-lm(lnprod ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,data=totalog1)
+
+#Log(sales/employees)
+
+m4 <- plm( lnsales~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+                      index = "ciiu4",
+                      effect = "individual", 
+                      model = "within",
+                      data = totalog1)
+
+m5 <- plm(lnsales ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+                      index = "dpto",
+                      effect = "individual", 
+                      model = "within",
+                      data = totalog1)
+
+m6<-lm(lnsales ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,data=totalog1)
+
+#Log(sales/employees)
+
+m7 <- plm(profoversales~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+                      index = "ciiu4",
+                      effect = "individual", 
+                      model = "within",
+                      data = totalog1)
+
+m8 <- plm(profoversales ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+                      index = "dpto",
+                      effect = "individual", 
+                      model = "within",
+                      data = totalog1)
+
+m9<-lm(profoversales ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,data=totalog1)
+
+
+stargazer(m1,m2,m3,m4,m5,m6,m7,m8,m9,
           header = FALSE,
-          title = "Management Score and Performance",
-          dep.var.labels = c("Log(Production/employees)","Log(Sales/employees)"),
-          covariate.labels =c("Log (fixed assets / employees)", "Log (Intermediate inputs/employees)","log (Employees)","Managememnt","Percent of staff with college degree"),
-          digits = 3)
-
-
-```
-
-We regress the value added per employee on: management, logarithm of investement on reserach, development and innovation, education variable, and logarithm of investment on information and communications technology.
-
-```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
-
-# Regression for Drivers of Productivity Variation (dpv)
-
-#IV1R11C2: total personal employed
-#II1R10C2:Investment on R&D+i
-#II1R4C2:Investment on ITC
-totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"|total$II1R10C2=="0"|total$II1R4C2=="0"),]
-
-reg_dpvlog<-lm(log_Value_Added_per_Employee ~ Management+log_RD_innovation+logICT_per_Employee+staff_with_college_degree, data =totalog2,)
-
-
-stargazer(reg_dpvlog,
-          header = FALSE,
-          title = "Drivers of Productivity Variation",
-#          dep.var.labels ="Log(Value Added /employees)",
-#          covariate.labels =c("Managememnt Score","Log (Investment on R&D and innovations)", "Log(Investment on #ITC","Percent of staff #with college #degree"),
-          digits = 3)
+          title = "Firm Management Scores and Performance ",
+          covariate.labels = c("Management", "Ln(Cap/Emp)","Ln(Input/Emp)","Ln(Employment)","Degree"),
+          dep.var.labels = c("Ln(Output/Emp)","Ln(Sales/Emp)","Profit/Sales"),#,
+          model.names = FALSE,
+          omit.stat = c("ser","f","adj.rsq"), #"rsq", 
+          omit="Constant",
+          digits = 2,
+          notes.align = "l",
+          font.size = "footnotesize")
 
 
 ```
@@ -528,12 +576,6 @@ stargazer(reg_dpvlog,
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
-#install.packages("IDPmisc")
-library(IDPmisc)
-library(lmtest)
-library(estimatr)
-library(plm)
-library(fastDummies)
 
 # LISTING VARIABLES FOR FIXED EFFECTS
 #ciiu4 with two first digits
@@ -550,12 +592,12 @@ total$ciiu4_2_d<- substr(total$ciiu4, start = 1, stop = 2)
 
 #UPDATING totallog1 and totalog2 for ciiu4_2_d 
 totalog1<-total[!(total$empltot=="0" | total$fixedassets=="0" |total$IV1R11C2=="0"| total$valprod=="0"),]
-totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"|total$II1R10C2=="0"|total$II1R4C2=="0"),]
+totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"|total$II1R4C2=="0"),]
 
 #Omitting special cases: NA, inf
 totalog3<-totalog1[!(total$valueadded=="0"|total$sales=="0"),]
-totalog3<-subset(totalog3,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales,lnprofoversales))
-totalog4<-subset(totalog2,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales,lnprofoversales,empltot,RDi_m_per_empl))
+totalog3<-subset(totalog3,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales))
+totalog4<-subset(totalog2,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales,empltot,lnRDi_m_per_empl1))
 totalog3 <- na.omit(totalog3)
 totalog4 <- na.omit(totalog4)
 totalog4<-NaRV.omit(totalog4)
@@ -565,6 +607,7 @@ totalog4<-NaRV.omit(totalog4)
 
 
 ```
+
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
@@ -602,40 +645,64 @@ m18<-lm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree,
 
 
 #FE:yes, with ciiu4. Dependent Variable:RDi
-m19 <- plm(RDi_m_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree, 
+m19 <- plm(lnRDi_m_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree, 
                       index = c("ciiu4"),
                       effect = "individual", 
                       model = "within",
                       data = totalog4)
 
 #FE:yes, with ciiu4. Dependent Variable:RDi
-m20 <- plm(RDi_m_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree, 
+m20 <- plm(lnRDi_m_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree, 
                       index = c("dpto"),
                       effect = "individual", 
                       model = "within",
                       data = totalog4)
 
 #FE:No
-m21<-lm(RDi_m_per_empl~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog4)
+m21<-lm(lnRDi_m_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog4)
 
 stargazer(m13,m14,m15,m16,m17,m18,m19,m20,m21,
           header = FALSE,
-          title = "Plant Management Scores and Performance",
+          title = "Firm Management Scores and Performance",
           covariate.labels = c("Management", "Ln(Cap/Emp)","Ln(Emp)","Degree"),
-          dep.var.labels = c("Log(VA/Emp)","(Profits/sales)","RD+i/Emp"),#,
+          dep.var.labels = c("Log(VA/Emp)","(Profits/sales)","RDi/Emp"),#,
           model.names = FALSE,
           omit.stat = c("ser","f","adj.rsq"), #"rsq", 
           omit="Constant",
           digits = 2,
-          notes.align = "l")
+          notes.align = "l",font.size = "small")
 
 
 ```
 
 
-# Appendix
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
 
-The following graphsuse data from Technology, Innovation and Development Survey (EDIT, acronym in Spanish) for Colombia 2017-2018 and manufacturing sector, with special emphasis on the Management and Organizational Practices questions. The EDIT includes 3 extra questions(Largest shareholder, Manager, gender) to the 16 that Bloom (2019)^[Bloom, Nicholas, Erik Brynjolfsson, Lucia Foster, Ron Jarmin, Megha Patnaik, Itay Saporta Eksten, and John Van Reenen.2019. What Drives Differences in Management Practices?. American Economic Review 2019, 109(5): 1648–1683] analyzes, for a total of 19 questions. The first three questions are:
+# Regression for Drivers of Productivity Variation (dpv)
+
+#IV1R11C2: total personal employed
+#II1R10C2:Investment on R&D+i
+#II1R4C2:Investment on ITC
+totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"|total$II1R4C2=="0"),]#|total$II1R10C2=="0"
+
+reg_dpvlog1<-lm(log_Value_Added_per_Employee ~ Management, data =totalog2,)
+reg_dpvlog2<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_m_per_empl1, data =totalog2,)
+reg_dpvlog3<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_m_per_empl1+logICT_per_Employee, data =totalog2,)
+reg_dpvlog4<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_m_per_empl1+logICT_per_Employee+staff_with_college_degree, data =totalog2,)
+
+stargazer(reg_dpvlog1,reg_dpvlog2,reg_dpvlog3,reg_dpvlog4,
+          header = FALSE,
+          title = "Drivers of Productivity Variation",
+          dep.var.labels ="Log(Value Added /employees)",
+          covariate.labels =c("Management","RDi", "Log(ITC)","Degree"),
+          omit.stat = c("ser","f","adj.rsq"),
+          omit="Constant",
+          digits = 3)
+
+
+```
+
+
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE}
 #fig.width = 2.5, fig.height=2.5
