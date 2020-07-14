@@ -1,10 +1,10 @@
 ---
 title: "Management and Organizational Practices Survey - Colombia 2017-2018"
 author: "Leonardo Iacovone / Javier Fernandez"
-date: "7/6/2020"
+date: "7/11/2020"
 output:
-  pdf_document: default
   word_document: default
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -155,8 +155,6 @@ Edit_2017_2018_2$avg_inc_q = rowMeans(Edit_2017_2018_2[,c(716,705,717,711,712,71
 
 ```
 
-Let's analyze Management and Organizational Practices Survey - MOPS questions. The 16 questions traditionally analyzed are: non-incentives (MOPS questions 1–8: monitoring and targets) and incentives (MOPS questions 9–16: bonus, promotion, and reassignment/dismissal practices). The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale following Bloom (2019).The EDIT data was recoded from categorical variables into a numerical variables in order to get a score.
-
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
@@ -209,7 +207,9 @@ stargazer(dft,
           digits = 3,
           df = FALSE,
           notes.append=TRUE,
-          notes.align = "l")
+          notes.align = "l",
+          notes = c("Note:The management score is the unweighted average of the score for each of the 16 questions, where",                              "each question is first normalized to be on a 0-1 scale. The sample in all columns is allobservations",
+                   "with at least 11 non-missing responses to management questions and a successful match to EAM.")) 
 
 
 #install.packages("texreg")
@@ -218,9 +218,9 @@ stargazer(dft,
 ```
 
 
-The next histogram shows the distribution for magement score (16 questions). As you can see, the distribution is skewed to the left, where the total number of observations is 7,529. This histogram includes all observations with at least 11 non-missing responses to management questions.
+The next histogram shows the distribution for magement score (16 questions). As you can see, the distribution is skewed to the left, where the total number of observations is 7,529 in EDIT. This histogram includes all observations with at least 11 non-missing responses to management questions.
 
-We use the Bloom (2019) methodology: "Questions 3, 4 and 5 are scored at 0 if missing, which typically arises from firms reporting “no performance indicators” to question 2 and skipping to question 6. The rationale for this is that firms with no performance indicators have no managerial or nonmanagerialreview of performance indicators, and have no performance display boards. For questions with multiple possible responses (those with “mark all that apply”) the average value was used".
+
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE, fig.show='hide',results='hide'}
 
@@ -265,7 +265,7 @@ ggplot(data=my_over_hist1,aes(x=Score))+
 ```
 
 
-The Colombian average management score (16 questions) is 0.367 meanwhile the U.S score is 0.615. The Non-incentive management score (1-8) is 0.474 (U.S:0.643 ) and incentives average (9-16) is 0.232 (U.S:0.583).
+According to Bloom(2019) the average U.S Management score (1-16 questions) is 0.615, the non-incentives (1-8) is 0.643 and the incentives (9-16) is 0.583.
 
 # Annual Manufacturing Survey
 
@@ -344,7 +344,7 @@ my_over_hist2$Colombia<-as.numeric(as.character(unlist(my_over_hist2[[3]])))
 
 
 ```
-
+The next histogram shows the distribution for magement score (16 questions) for Colombia and the United States, using the merge between EDIT and EAM with 6,034 observations. 
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
@@ -360,7 +360,6 @@ ggplot(data=my_over_hist2,aes(x=Score))+
        y="Share")+theme(plot.title = element_text(hjust = 0.5))
 ```
 
-The plot indicates a positive relationship among the number of employees and our management score: 
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
@@ -493,6 +492,8 @@ total$sales_millions<-total$sales/1000
 total$profoversales<-total$opprofit_millions/total$sales_millions
 #8.Log (Profit/sales)
 total$lnprofoversales<-log(total$profoversales)
+#9.Lerner Index
+total$lerner<-total$opprofit/total$sales
 
 
 #List of variables for Drivers of Productivity variation
@@ -608,7 +609,7 @@ totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"|
 
 #Omitting special cases: NA, inf
 totalog3<-totalog1[!(total$valueadded=="0"|total$sales=="0"),]
-totalog3<-subset(totalog3,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales))
+totalog3<-subset(totalog3,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales,lerner))
 totalog4<-subset(totalog2,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales,empltot,lnRDi_m_per_empl1, ICT_per_Employee))
 totalog3 <- na.omit(totalog3)
 totalog4 <- na.omit(totalog4)
@@ -684,7 +685,7 @@ m21<-lm(lnRDi_m_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degr
 #          digits = 2,
 #          notes.align = "l",font.size = "small")
 
-texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption="Firm Management Scores and Performance",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:3,"(Profits/sales)"=4:6, "RDi/Emp"=7:9),digits =2,omit.coef ="Intercept",custom.coef.names=c("Management","Ln(Cap/Emp)", "Ln(Input/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9}")) 
+texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption="Firm Management Scores and Performance",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:3,"(Profits/sales)"=4:6, "RDi/Emp"=7:9),digits =2,omit.coef ="Intercept",custom.coef.names=c("Management","Ln(Cap/Emp)", "Ln(Input/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9.}")) 
 
 ```
 
@@ -712,9 +713,31 @@ reg_dpvlog4<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_m_per_empl1+ICT_
 #          omit="Constant",
 #          digits = 3)
 
-texreg(list(reg_dpvlog1, reg_dpvlog2,reg_dpvlog3,reg_dpvlog4),caption.above = TRUE, caption="Drivers of Productivity Variation",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses.Dependent variable is firm level log(Value Added/Employment). Right-hand-side variables are Management score, RDi is measured as log(1+RDi intensity), where RDi intensity is the total domestic Research, Development and innovation expenditure in 2018 divided by total domestic employment, ICT/Emp is investment per worker (1,000 × spending on information and communication technology hardware and software per employee), Degree is measured by the share of employees (managers and non-managers) with a college degree.}"))
+texreg(list(reg_dpvlog1, reg_dpvlog2,reg_dpvlog3,reg_dpvlog4),caption.above = TRUE, caption="Drivers of Productivity Variation",fontsize = "normalsize",   custom.header = list("Log(VA/Emp)"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses.Dependent variable is firm level log(Value Added/Employment). Right-hand-side variables are Management score, RDi is measured as log(1+RDi intensity), where RDi intensity is the total domestic Research, Development and innovation expenditure in 2018 divided by total domestic employment, ICT/Emp is investment per worker (1,000 × spending on information and communication technology hardware and software per employee), Degree is measured by the share of employees (managers and non-managers) with a college degree.}"))
 
 ```
+
+
+
+
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+
+
+m22<-lm( Management ~ lerner,data =totalog3)
+
+#FE industry 4 digits and all controls
+m23 <- plm(Management ~ lerner+lnfape+lnempltot+staff_with_college_degree, 
+                      index = c("ciiu4"),
+                      effect = "individual", 
+                      model = "within",
+                      data = totalog3)
+
+
+
+texreg(list(m22, m23),caption.above = TRUE, caption="Product Market Competition and Management", fontsize = "normalsize", custom.header = list("Management"=1:2),digits =3,omit.coef ="Intercept",custom.coef.names=c("Lerner Index","Ln(Cap/Emp)", "Ln(Employment","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\The Lerner Index is the gross profits over sales, where gross profits equals to production value less material costs and wage costs in 2018.This table uses this Lerner index without controls:column (1), and with four-digit industry fixed effects and full controls:column (2).}"))
+
+```
+
 
 
 
