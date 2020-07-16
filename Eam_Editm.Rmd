@@ -3,8 +3,8 @@ title: "Management and Organizational Practices Survey - Colombia 2017-2018"
 author: "Leonardo Iacovone / Javier Fernandez"
 date: "7/11/2020"
 output:
-  word_document: default
   pdf_document: default
+  word_document: default
   html_document:
     df_print: paged
 ---
@@ -296,7 +296,7 @@ colnames(Eam_2018_2)[5] <- "valprod"
 colnames(Eam_2018_2)[6] <- "valitc"
 colnames(Eam_2018_2)[7]<-"valueadded"
 colnames(Eam_2018_2)[8]<-"benefits"
-colnames(Eam_2018_2)[9]<-"monthly_wages"
+colnames(Eam_2018_2)[9]<-"wages"
 colnames(Eam_2018_2)[10]<-"sales"
 
 
@@ -403,7 +403,7 @@ total$exports_millions<-(total$I3R2C2)/1000
 total$rdi_millions<-(total$II1R10C2)/1000
 #4. Operating profit
 #a. total wages
-total$totalwages<-total$benefits+total$monthly_wages
+total$totalwages<-total$benefits+total$wages
 #b. Total expenses
 total$totalexpenses<-total$totalwages+total$intinput
 #Operating profit
@@ -430,7 +430,7 @@ bar3<-ggplot(total, aes(x=decilmanagement, y=rdi_millions))+
   labs(x="Decile of Management", y=" Av. RDi") +stat_summary(fun = "mean", geom = "bar")
   
 bar4<-ggplot(total, aes(x=decilmanagement, y=opprofit_millions))+ 
-  labs(x="Decile of Management", y="Av. Operating Profit") +stat_summary(fun = "mean", geom = "bar")
+  labs(x="Decile of Management", y="Av. Operating Profit_Mill") +stat_summary(fun = "mean", geom = "bar")
 
 bar5<-ggplot(total, aes(x=decilmanagement, y=ipr))+ 
   labs(x="Decile of Management", y="Av. IP registers") +stat_summary(fun = "mean", geom = "bar")
@@ -494,6 +494,15 @@ total$profoversales<-total$opprofit_millions/total$sales_millions
 total$lnprofoversales<-log(total$profoversales)
 #9.Lerner Index
 total$lerner<-total$opprofit/total$sales
+total$ciiu4_2_d<- substr(total$ciiu4, start = 1, stop = 2)
+#10. Ln production
+total$lnvalprod<-log(total$valprod)
+#11. Ln wages
+total$lnwages<-log(total$totalwages)
+#12. Ln Fix assets
+total$lnfixedassets<-log(total$fixedassets)
+#13. Ln Intermediate input
+total$lnintinput<-log(total$intinput)
 
 
 #List of variables for Drivers of Productivity variation
@@ -502,69 +511,70 @@ total$lerner<-total$opprofit/total$sales
 total$log_Value_Added_per_Employee<-log(total$valueadded/total$empltot)
 #1.Total Score (1-16): total$Management
 #2. RDi/emp=II1R10C2/empltot
-total$RDi_m<-total$II1R10C2/1000
-total$RDi_m_per_empl=(total$RDi_m/total$empltot)
-total$RDi_m_per_empl1=(total$RDi_m_per_empl)+1
-total$lnRDi_m_per_empl1=log(total$RDi_m_per_empl1) ####This the variable for RD
+total$RDi<-total$II1R10C2
+total$RDi_per_empl=(total$RDi/total$empltot)
+total$RDi_per_empl1=(total$RDi_per_empl)+1
+total$lnRDi_per_empl1=log(total$RDi_per_empl1) ####This the variable for RD
 #3.Investment on ITC/Emp) - 2018:total$II1R4C2/total$empltot
 total$ICT_per_Employee<-total$II1R4C2/total$empltot #### This the variable, since unit are miles, this means spending per 1000 workers
 
 
-
-#cleaning data base due we run logarithms
-totalog1<-total[!(total$empltot=="0" | total$fixedassets=="0" |total$IV1R11C2=="0"| total$valprod=="0"),]
-totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"),]#|total$II1R10C2=="0"
-
-
 ###########  Plant Management Scores and Performance (Bloom, 2019: Table 1)
 
-#Log(Production/employees)
+#subset1
 
-m1 <- plm(lnprod ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+g1_1<-subset(total,select=c(NORDEMP,lnprod,lnsales,profoversales,Management,lnfape,lniipe,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g1_1<-NaRV.omit(g1_1)
+g1_2<-subset(total,select=c(NORDEMP,lnsales,Management,lnfape,lniipe,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g1_2<-NaRV.omit(g1_2)
+g1_3<-subset(total,select=c(NORDEMP,profoversales,Management,lnfape,lniipe,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g1_3<-NaRV.omit(g1_3)
+
+m1 <- plm(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
                       index = "ciiu4",
                       effect = "individual", 
                       model = "within",
-                      data = totalog1)
+                      data = g1_1)
 
-m2 <- plm(lnprod ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+m2 <- plm(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
                       index = "dpto",
                       effect = "individual", 
                       model = "within",
-                      data = totalog1)
+                      data = g1_1)
 
-m3<-lm(lnprod ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,data=totalog1)
+m3<-lm(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,data=g1_1)
 
 #Log(sales/employees)
 
-m4 <- plm( lnsales~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+m4 <- plm( lnsales~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
                       index = "ciiu4",
                       effect = "individual", 
                       model = "within",
-                      data = totalog1)
+                      data = g1_2)
 
-m5 <- plm(lnsales ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+m5 <- plm(lnsales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
                       index = "dpto",
                       effect = "individual", 
                       model = "within",
-                      data = totalog1)
+                      data = g1_2)
 
-m6<-lm(lnsales ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,data=totalog1)
+m6<-lm(lnsales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,data=g1_2)
 
-#Log(sales/employees)
+#Log(profit/employees)
 
-m7 <- plm(profoversales~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+m7 <- plm(profoversales~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
                       index = "ciiu4",
                       effect = "individual", 
                       model = "within",
-                      data = totalog1)
+                      data = g1_3)
 
-m8 <- plm(profoversales ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,
+m8 <- plm(profoversales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
                       index = "dpto",
                       effect = "individual", 
                       model = "within",
-                      data = totalog1)
+                      data = g1_3)
 
-m9<-lm(profoversales ~ Management+lnfape+lniipe+empltot+staff_with_college_degree,data=totalog1)
+m9<-lm(profoversales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,data=g1_3)
 
 
 #stargazer(m1,m2,m3,m4,m5,m6,m7,m8,m9,
@@ -587,42 +597,18 @@ texreg(list(m1, m2,m3,m4,m5,m6,m7,m8,m9),caption.above = TRUE, caption="Firm Man
 ```
 
 
-```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
-
-
-# LISTING VARIABLES FOR FIXED EFFECTS
-#ciiu4 with two first digits
-total$ciiu4_2_d<- substr(total$ciiu4, start = 1, stop = 2)
-
-#independent variables:
-#Management= Management;Log(Capital/Emp):Log (fixed assets / employees)=lnfape;Log(Emp):Log (total employment)=lnempltot;percent of staff with college degree= staff_with_college_degree
-
-#Dependent variable (s)
-
-#1.Log (Value Added/Employees)=total$log_Value_Added_per_Employee
-#2.Profits/sales: Profits/sales=profoversales
-
-
-#UPDATING totallog1 and totalog2 for ciiu4_2_d 
-totalog1<-total[!(total$empltot=="0" | total$fixedassets=="0" |total$IV1R11C2=="0"| total$valprod=="0"),]
-totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"|total$II1R4C2=="0"),]
-
-#Omitting special cases: NA, inf
-totalog3<-totalog1[!(total$valueadded=="0"|total$sales=="0"),]
-totalog3<-subset(totalog3,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales,lerner))
-totalog4<-subset(totalog2,select=c(NORDEMP,log_Value_Added_per_Employee,Management,ciiu4,ciiu4_2_d,dpto,lnfape,lnempltot,staff_with_college_degree,profoversales,empltot,lnRDi_m_per_empl1, ICT_per_Employee))
-totalog3 <- na.omit(totalog3)
-totalog4 <- na.omit(totalog4)
-totalog4<-NaRV.omit(totalog4)
-#totalog4 <- totalog4[is.finite(rowSums(totalog4)),]
-
-#totalog4
-
-
-```
-
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
+
+
+#subset2
+g2_1<-subset(total,select=c(NORDEMP,log_Value_Added_per_Employee,Management,lnfape,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g2_1<-NaRV.omit(g2_1)
+g2_2<-subset(total,select=c(NORDEMP,profoversales,Management,lnfape,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g2_2<-NaRV.omit(g2_2)
+g2_3<-subset(total,select=c(NORDEMP,lnRDi_per_empl1,Management,lnfape,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g2_3<-NaRV.omit(g2_3)
+
 
 #FE:yes, with ciiu4. Dependent Variable: Log (Value Added/Employees)
 
@@ -630,15 +616,15 @@ m13 <- plm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_wi
                       index = "ciiu4",
                       effect = "individual", 
                       model = "within",
-                      data = totalog3)
+                      data = g2_1)
 
 m14 <- plm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_with_college_degree, 
                       index = "dpto",
                       effect = "individual", 
                       model = "within",
-                      data = totalog3)
+                      data = g2_1)
 #FE:No
-m15<-lm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog3)
+m15<-lm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_with_college_degree,data =g2_1)
 
 
 #FE:yes, with ciiu4. Dependent Variable:Log(Profits/sales)
@@ -646,33 +632,33 @@ m16 <- plm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degr
                       index = c("ciiu4"),
                       effect = "individual", 
                       model = "within",
-                      data = totalog3)
+                      data = g2_2)
 
 m17 <- plm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree, 
                       index = c("dpto"),
                       effect = "individual", 
                       model = "within",
-                      data = totalog3)
+                      data = g2_2)
 #FE:No
-m18<-lm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog3)
+m18<-lm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree,data =g2_2)
 
 
 #FE:yes, with ciiu4. Dependent Variable:RDi
-m19 <- plm(lnRDi_m_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree, 
+m19 <- plm(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree, 
                       index = c("ciiu4"),
                       effect = "individual", 
                       model = "within",
-                      data = totalog4)
+                      data = g2_3)
 
 #FE:yes, with ciiu4. Dependent Variable:RDi
-m20 <- plm(lnRDi_m_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree, 
+m20 <- plm(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree, 
                       index = c("dpto"),
                       effect = "individual", 
                       model = "within",
-                      data = totalog4)
+                      data = g2_3)
 
 #FE:No
-m21<-lm(lnRDi_m_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree,data =totalog4)
+m21<-lm(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree,data =g2_3)
 
 #stargazer(m13,m14,m15,m16,m17,m18,m19,m20,m21,
 #          header = FALSE,
@@ -685,7 +671,7 @@ m21<-lm(lnRDi_m_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degr
 #          digits = 2,
 #          notes.align = "l",font.size = "small")
 
-texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption="Firm Management Scores and Performance",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:3,"(Profits/sales)"=4:6, "RDi/Emp"=7:9),digits =2,omit.coef ="Intercept",custom.coef.names=c("Management","Ln(Cap/Emp)", "Ln(Input/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9.}")) 
+texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption="Firm Management Scores and Performance",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:3,"(Profits/sales)"=4:6, "RDi/Emp"=7:9),digits =2,omit.coef ="Intercept",custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9.}")) 
 
 ```
 
@@ -697,12 +683,21 @@ texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption=
 #IV1R11C2: total personal employed
 #II1R10C2:Investment on RDi
 #II1R4C2:Investment on ITC
-totalog2<-total[!(total$empltot=="0"|total$IV1R11C2=="0"| total$valueadded=="0"|total$II1R4C2=="0"),]#|total$II1R10C2=="0"
 
-reg_dpvlog1<-lm(log_Value_Added_per_Employee ~ Management, data =totalog2,)
-reg_dpvlog2<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_m_per_empl1, data =totalog2,)
-reg_dpvlog3<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_m_per_empl1+ICT_per_Employee, data =totalog2,)
-reg_dpvlog4<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_m_per_empl1+ICT_per_Employee+staff_with_college_degree, data =totalog2,)
+#in order to replace NA by zeroes
+g3_subset<-subset(total,select=c(NORDEMP,log_Value_Added_per_Employee,Management,lnRDi_per_empl1,ICT_per_Employee,staff_with_college_degree))
+
+
+g3_1<-g3_subset
+g3_1$lnRDi_per_empl1[is.na(g3_subset$lnRDi_per_empl1)] <- 0
+g3_1$ICT_per_Employee[is.na(g3_subset$ICT_per_Employee)] <-256.7
+g3_1<-NaRV.omit(g3_1)
+
+
+reg_dpvlog1<-lm(log_Value_Added_per_Employee ~ Management, data =g3_1)
+reg_dpvlog2<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_per_empl1, data =g3_1)
+reg_dpvlog3<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_per_empl1+ICT_per_Employee, data =g3_1)
+reg_dpvlog4<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_per_empl1+ICT_per_Employee+staff_with_college_degree, data =g3_1)
 
 #stargazer(reg_dpvlog1,reg_dpvlog2,reg_dpvlog3,reg_dpvlog4,
 #          header = FALSE,
@@ -713,7 +708,7 @@ reg_dpvlog4<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_m_per_empl1+ICT_
 #          omit="Constant",
 #          digits = 3)
 
-texreg(list(reg_dpvlog1, reg_dpvlog2,reg_dpvlog3,reg_dpvlog4),caption.above = TRUE, caption="Drivers of Productivity Variation",fontsize = "normalsize",   custom.header = list("Log(VA/Emp)"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses.Dependent variable is firm level log(Value Added/Employment). Right-hand-side variables are Management score, RDi is measured as log(1+RDi intensity), where RDi intensity is the total domestic Research, Development and innovation expenditure in 2018 divided by total domestic employment, ICT/Emp is investment per worker (1,000 × spending on information and communication technology hardware and software per employee), Degree is measured by the share of employees (managers and non-managers) with a college degree.}"))
+texreg(list(reg_dpvlog1, reg_dpvlog2,reg_dpvlog3,reg_dpvlog4),caption.above = TRUE, caption="Drivers of Productivity Variation",fontsize = "normalsize",   custom.header = list("Log(VA/Emp)"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses.Dependent variable is firm level log(Value Added/Employment). Right-hand-side variables are Management score, RDi is measured as log(1+RDi intensity), where RDi intensity is the total domestic Research, Development and innovation expenditure in 2018 divided by total domestic employment, ICT/Emp is investment per worker (spending on information and communication technology hardware and software per employee), Degree is measured by the share of employees (managers and non-managers) with a college degree.Missing values have been replaced by zero for RDi and by means for the other variables.}"))
 
 ```
 
@@ -723,14 +718,19 @@ texreg(list(reg_dpvlog1, reg_dpvlog2,reg_dpvlog3,reg_dpvlog4),caption.above = TR
 ```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
 
 
-m22<-lm( Management ~ lerner,data =totalog3)
+g4<-subset(total,select=c(NORDEMP,Management,lerner))
+g4<-NaRV.omit(g4)
+g5<-subset(total,select=c(NORDEMP,Management,lerner,lnfape,lnempltot,staff_with_college_degree,ciiu4))
+g5<-NaRV.omit(g5)
+
+m22<-lm( Management ~ lerner,data =g4)
 
 #FE industry 4 digits and all controls
 m23 <- plm(Management ~ lerner+lnfape+lnempltot+staff_with_college_degree, 
                       index = c("ciiu4"),
                       effect = "individual", 
                       model = "within",
-                      data = totalog3)
+                      data = g5)
 
 
 
@@ -738,6 +738,49 @@ texreg(list(m22, m23),caption.above = TRUE, caption="Product Market Competition 
 
 ```
 
+
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+
+g5<-subset(total,select=c(NORDEMP,lnvalprod, lnwages,lnfixedassets,lnintinput))
+g5<-NaRV.omit(g5)
+
+#Total Factor Productivity (tfp)
+#LogY:lnvalprod
+#LogL:lnwages
+#LogK:lnfixedassets
+#LogI:lnintinput
+
+mtfp_reg<-lm(lnvalprod ~ lnwages+lnfixedassets+lnintinput,data =g5)
+#summary(mtfp_reg)
+
+g5$p_lnvalprod<-predict(mtfp_reg)
+
+g5$lna<-g5$lnvalprod-g5$p_lnvalprod
+
+
+g6<-merge(g5,g3_subset[ , c("NORDEMP","Management","lnRDi_per_empl1","ICT_per_Employee","staff_with_college_degree")],by="NORDEMP",all=FALSE)
+g6$lnRDi_per_empl1[is.na(g6$lnRDi_per_empl1)] <- 0
+g6$ICT_per_Employee[is.na(g6$ICT_per_Employee)] <-256.7
+
+
+#Revenue-based Total Factor Productivity
+
+m24<-lm(lna ~ Management,data=g6)
+
+m25<-lm(lna ~ Management+lnRDi_per_empl1, data =g6)
+
+m26<-lm(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee, data =g6)
+
+m27<-lm(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee+staff_with_college_degree, data =g6)
+
+
+texreg(list(m24, m25,m26,m27),caption.above = TRUE, caption="Drivers of Total Factor Productivity", fontsize = "normalsize", custom.header = list("Revenue-based Total Factor Productivity"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. Dependent variable is firm level TFP built from industry firm-level. Right-hand side variables are management score, RDi from BRDIS measured as log(1+RDi intensity) where RDi intensity is the total domestic RDi expenditure divided by total domestic employment, IT investment per worker, skill measured by the share of employees (managers and non-managers) with a college
+degree.Missing values have been replaced by zero for RDi and by means for the other variables.}"))
+
+
+
+
+```
 
 
 
