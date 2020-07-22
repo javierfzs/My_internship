@@ -1,7 +1,7 @@
 ---
 title: "Management and Organizational Practices Survey - Colombia 2017-2018"
 author: "Leonardo Iacovone / Javier Fernandez"
-date: "7/11/2020"
+date: "7/21/2020"
 output:
   pdf_document: default
   word_document: default
@@ -54,6 +54,7 @@ library(estimatr)
 library(plm)
 library(fastDummies)
 library(texreg)
+library(fixest)
 
 
 library(haven)
@@ -203,7 +204,7 @@ dft=subset(df0, select = -c(nordemp,freq))
 
 stargazer(dft,
           header = FALSE,
-          title = "Descriptive Statistics",
+          title = "Descriptive Statistics (1)",
           digits = 3,
           df = FALSE,
           notes.append=TRUE,
@@ -267,7 +268,6 @@ ggplot(data=my_over_hist1,aes(x=Score))+
 
 According to Bloom(2019) the average U.S Management score (1-16 questions) is 0.615, the non-incentives (1-8) is 0.643 and the incentives (9-16) is 0.583.
 
-# Annual Manufacturing Survey
 
 The next table shows the number of observations for each database and our estimates use the merge EDIT-EAM. 
 
@@ -277,7 +277,7 @@ The next table shows the number of observations for each database and our estima
 
 #aggregating by nordemp and summing dpto or more.
 # As a result, the new variable is Group.1 (KEY) instead nordemp (Nominal change) and the aggregated variable is x instead dpto.
-Eam_2018_2<-aggregate(list(Eam_2018_1$CONSIN2, Eam_2018_1$ACTIVFI,Eam_2018_1$PERTOTAL,Eam_2018_1$PRODBR2,Eam_2018_1$c7c4r14,Eam_2018_1$VALAGRI,Eam_2018_1$PRESPYTE,Eam_2018_1$SALPEYTE,Eam_2018_1$VALORVEN), by=list(Eam_2018_1$nordemp),FUN=sum,na.rm=TRUE) #, na.rm=FALSE
+Eam_2018_2<-aggregate(list(Eam_2018_1$CONSIN2, Eam_2018_1$ACTIVFI,Eam_2018_1$PERTOTAL,Eam_2018_1$PRODBR2,Eam_2018_1$c7c4r14,Eam_2018_1$VALAGRI,Eam_2018_1$PRESPYTE,Eam_2018_1$SALPEYTE,Eam_2018_1$VALORVEN,Eam_2018_1$VALORCOM,Eam_2018_1$VALORCX,Eam_2018_1$PORCVT), by=list(Eam_2018_1$nordemp),FUN=sum,na.rm=TRUE) #, na.rm=FALSE
 
 #ascendent order on Group.1, it is optional becaise the aggregate function returns a ascendent Group.1 (KEY) 
 #Eam_2018_3<- Eam_2018_2[order(Eam_2018_2$x),]
@@ -298,6 +298,9 @@ colnames(Eam_2018_2)[7]<-"valueadded"
 colnames(Eam_2018_2)[8]<-"benefits"
 colnames(Eam_2018_2)[9]<-"wages"
 colnames(Eam_2018_2)[10]<-"sales"
+colnames(Eam_2018_2)[11]<-"raw_material"
+colnames(Eam_2018_2)[12]<-"raw_material_m"
+colnames(Eam_2018_2)[13]<-"sales_x"
 
 
 #typeof(Eam_2018_2$dpto)
@@ -322,8 +325,52 @@ stargazer(n,
           summary=FALSE,
           rownames = FALSE)
 
-#install.packages("stargazer")
+# Total sales from EDIT
+total$salesEdit<-total$I3R2C1+total$I3R2C1
+
+#dataframe for Stargazer 
+dft2=subset(total, select = c(NORDEMP,sales,valueadded,salesEdit,sales_x,II1R10C2))#sharesales_x,sharesRDi
+#Cleaning
+dft2<-dft2[!(dft2$sales=="0"|dft2$salesEdit=="0"),]
+
+#javis<-data.frame(count(dft2,"sharesRDi"))
+
+dft2<-dft2%>%
+  mutate(sales=sales/1000)%>%
+  mutate(sales_x=sales_x/1000)%>%
+  mutate(valueadded=valueadded/1000)%>%
+  mutate(sharesales_x=sales_x/sales)%>%
+  mutate(sharesRD=II1R10C2/salesEdit)
+
+dft2=subset(dft2, select = -c(salesEdit,sales_x,II1R10C2))
+
+#outliers: NORDEMP=981456,144974,145804,145918 because they have outliers on RDi>0.9
+dft2<-dft2[!(dft2$NORDEMP=="981456"|dft2$NORDEMP=="144974"|dft2$NORDEMP=="145804"|dft2$NORDEMP=="145918"),]
+dft2=subset(dft2, select = -c(NORDEMP))
+
+#CLEANING outliers
+total<-total[!(total$NORDEMP=="981456"|total$NORDEMP=="144974"|total$NORDEMP=="145804"|total$NORDEMP=="145918"),]
+
+colnames(dft2)[1] <- "Total Sales"
+colnames(dft2)[2] <- "Value Added"
+colnames(dft2)[3] <- "Exports/Sales"
+colnames(dft2)[4] <- "RDi/Sales"
+
+
+stargazer(dft2,
+          header = FALSE,
+          title = "Descriptive Statistics (2)",
+          df = FALSE,
+          notes.append=TRUE,
+          notes.align = "l",
+          notes = c("Note:For the merge between EDIT and EAM,this table shows the descriptive statistics for Total Sales",
+                    "Value Added in millions of colombian pesos, value of exported products/Sales and value of investment",
+                    "on research, development and innovation (RDi)/Sales.")) 
+
+
 ```
+
+
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis", fig.show='hide',results='hide'}
 
@@ -394,7 +441,7 @@ library(scales)
 
 ##############BAR GRAPHS##################
 #listing variables to plot (Productivity,Exports, RD and i,Profit,) and some? which?
-#1. Productivity (value added//employees)
+#1. Productivity (value added/employees)
 total$productivity<-total$valueadded/total$empltot2
 total$productivity3<-(total$productivity)/1000
 #2. Value of Exports: I3R2C2
@@ -494,7 +541,7 @@ total$profoversales<-total$opprofit_millions/total$sales_millions
 total$lnprofoversales<-log(total$profoversales)
 #9.Lerner Index
 total$lerner<-total$opprofit/total$sales
-total$ciiu4_2_d<- substr(total$ciiu4, start = 1, stop = 2)
+total$ciiu4_2_d<- substr(total$CIIU4, start = 1, stop = 2)
 #10. Ln production
 total$lnvalprod<-log(total$valprod)
 #11. Ln wages
@@ -523,15 +570,16 @@ total$ICT_per_Employee<-total$II1R4C2/total$empltot #### This the variable, sinc
 
 #subset1
 
-g1_1<-subset(total,select=c(NORDEMP,lnprod,lnsales,profoversales,Management,lnfape,lniipe,lnempltot,staff_with_college_degree,ciiu4,dpto))
+
+g1_1<-subset(total,select=c(NORDEMP,lnprod,lnsales,profoversales,Management,lnfape,lniipe,lnempltot,staff_with_college_degree,CIIU4,dpto))
 g1_1<-NaRV.omit(g1_1)
-g1_2<-subset(total,select=c(NORDEMP,lnsales,Management,lnfape,lniipe,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g1_2<-subset(total,select=c(NORDEMP,lnsales,Management,lnfape,lniipe,lnempltot,staff_with_college_degree,CIIU4,dpto))
 g1_2<-NaRV.omit(g1_2)
-g1_3<-subset(total,select=c(NORDEMP,profoversales,Management,lnfape,lniipe,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g1_3<-subset(total,select=c(NORDEMP,profoversales,Management,lnfape,lniipe,lnempltot,staff_with_college_degree,CIIU4,dpto))
 g1_3<-NaRV.omit(g1_3)
 
 m1 <- plm(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
-                      index = "ciiu4",
+                      index = "CIIU4",
                       effect = "individual", 
                       model = "within",
                       data = g1_1)
@@ -547,7 +595,7 @@ m3<-lm(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,dat
 #Log(sales/employees)
 
 m4 <- plm( lnsales~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
-                      index = "ciiu4",
+                      index = "CIIU4",
                       effect = "individual", 
                       model = "within",
                       data = g1_2)
@@ -563,7 +611,7 @@ m6<-lm(lnsales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,da
 #Log(profit/employees)
 
 m7 <- plm(profoversales~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
-                      index = "ciiu4",
+                      index = "CIIU4",
                       effect = "individual", 
                       model = "within",
                       data = g1_3)
@@ -602,18 +650,18 @@ texreg(list(m1, m2,m3,m4,m5,m6,m7,m8,m9),caption.above = TRUE, caption="Firm Man
 
 
 #subset2
-g2_1<-subset(total,select=c(NORDEMP,log_Value_Added_per_Employee,Management,lnfape,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g2_1<-subset(total,select=c(NORDEMP,log_Value_Added_per_Employee,Management,lnfape,lnempltot,staff_with_college_degree,CIIU4,dpto))
 g2_1<-NaRV.omit(g2_1)
-g2_2<-subset(total,select=c(NORDEMP,profoversales,Management,lnfape,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g2_2<-subset(total,select=c(NORDEMP,profoversales,Management,lnfape,lnempltot,staff_with_college_degree,CIIU4,dpto))
 g2_2<-NaRV.omit(g2_2)
-g2_3<-subset(total,select=c(NORDEMP,lnRDi_per_empl1,Management,lnfape,lnempltot,staff_with_college_degree,ciiu4,dpto))
+g2_3<-subset(total,select=c(NORDEMP,lnRDi_per_empl1,Management,lnfape,lnempltot,staff_with_college_degree,CIIU4,dpto))
 g2_3<-NaRV.omit(g2_3)
 
 
 #FE:yes, with ciiu4. Dependent Variable: Log (Value Added/Employees)
 
 m13 <- plm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_with_college_degree, 
-                      index = "ciiu4",
+                      index = "CIIU4",
                       effect = "individual", 
                       model = "within",
                       data = g2_1)
@@ -629,7 +677,7 @@ m15<-lm(log_Value_Added_per_Employee ~ Management + lnfape+lnempltot+staff_with_
 
 #FE:yes, with ciiu4. Dependent Variable:Log(Profits/sales)
 m16 <- plm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree, 
-                      index = c("ciiu4"),
+                      index = c("CIIU4"),
                       effect = "individual", 
                       model = "within",
                       data = g2_2)
@@ -645,7 +693,7 @@ m18<-lm(profoversales ~ Management + lnfape+lnempltot+staff_with_college_degree,
 
 #FE:yes, with ciiu4. Dependent Variable:RDi
 m19 <- plm(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree, 
-                      index = c("ciiu4"),
+                      index = c("CIIU4"),
                       effect = "individual", 
                       model = "within",
                       data = g2_3)
@@ -659,6 +707,13 @@ m20 <- plm(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_deg
 
 #FE:No
 m21<-lm(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree,data =g2_3)
+
+
+
+#code for gravity equation
+#j19 <- feglm(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree|CIIU4+dpto,g2_3)
+#summary(j19)
+
 
 #stargazer(m13,m14,m15,m16,m17,m18,m19,m20,m21,
 #          header = FALSE,
@@ -715,24 +770,22 @@ texreg(list(reg_dpvlog1, reg_dpvlog2,reg_dpvlog3,reg_dpvlog4),caption.above = TR
 
 
 
-```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis", fig.show='hide',results='hide'}
 
 
 g4<-subset(total,select=c(NORDEMP,Management,lerner))
 g4<-NaRV.omit(g4)
-g5<-subset(total,select=c(NORDEMP,Management,lerner,lnfape,lnempltot,staff_with_college_degree,ciiu4))
+g5<-subset(total,select=c(NORDEMP,Management,lerner,lnfape,lnempltot,staff_with_college_degree,CIIU4))
 g5<-NaRV.omit(g5)
 
 m22<-lm( Management ~ lerner,data =g4)
 
 #FE industry 4 digits and all controls
 m23 <- plm(Management ~ lerner+lnfape+lnempltot+staff_with_college_degree, 
-                      index = c("ciiu4"),
+                      index = c("CIIU4"),
                       effect = "individual", 
                       model = "within",
                       data = g5)
-
-
 
 texreg(list(m22, m23),caption.above = TRUE, caption="Product Market Competition and Management", fontsize = "normalsize", custom.header = list("Management"=1:2),digits =3,omit.coef ="Intercept",custom.coef.names=c("Lerner Index","Ln(Cap/Emp)", "Ln(Employment","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\The Lerner Index is the gross profits over sales, where gross profits equals to production value less material costs and wage costs in 2018.This table uses this Lerner index without controls:column (1), and with four-digit industry fixed effects and full controls:column (2).}"))
 
@@ -774,7 +827,7 @@ m26<-lm(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee, data =g6)
 m27<-lm(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee+staff_with_college_degree, data =g6)
 
 
-texreg(list(m24, m25,m26,m27),caption.above = TRUE, caption="Drivers of Total Factor Productivity", fontsize = "normalsize", custom.header = list("Revenue-based Total Factor Productivity"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. Dependent variable is firm level TFP built from industry firm-level. Right-hand side variables are management score, RDi from BRDIS measured as log(1+RDi intensity) where RDi intensity is the total domestic RDi expenditure divided by total domestic employment, IT investment per worker, skill measured by the share of employees (managers and non-managers) with a college
+texreg(list(m24, m25,m26,m27),caption.above = TRUE, caption="Drivers of Total Factor Productivity", fontsize = "normalsize", custom.header = list("Revenue-based Total Factor Productivity - RTFP"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. Dependent variable is firm level TFP built from industry firm-level. Independent variables are management score, RDi measured as log(1+RDi intensity) where RDi intensity is the total domestic RDi expenditure divided by total domestic employment, IT investment per worker, skill measured by the share of employees (managers and non-managers) with a college
 degree.Missing values have been replaced by zero for RDi and by means for the other variables.}"))
 
 
@@ -783,8 +836,116 @@ degree.Missing values have been replaced by zero for RDi and by means for the ot
 ```
 
 
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+
+#source: 
+
+#average tariffs: https://www.macmap.org/
+# ciiu-product: https://www.dane.gov.co/index.php/sistema-estadistico-nacional-sen/normas-y-estandares/nomenclaturas-y-clasificaciones/tablas-correlativas
+
+tarciiu<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/Data_Expo/Tariffs_CIIU4.csv")
+
+avgtarciiu<-data.frame(aggregate( avgtariff ~ CIIU4,tarciiu, mean ))
+
+total <- merge(total,avgtarciiu,by="CIIU4",all=FALSE)
+
+total<-total%>%
+  relocate(CIIU4, .before = TIPOLO)
+
+#anyNA(total$avgtariff)
+
+g7<-subset(total,select=c(NORDEMP,Management,avgtariff,lnfape,lnempltot,staff_with_college_degree,CIIU4,lerner))
+g7<-NaRV.omit(g7)
+
+m28<-lm( Management ~ avgtariff,data =g7)
+
+#FE industry 4 digits and all controls
+m29 <- lm(Management ~avgtariff+lnfape+lnempltot+staff_with_college_degree,data = g7)
+
+texreg(list(m28, m29),caption.above = TRUE, caption="Tariffs and Management", fontsize = "normalsize", custom.header = list("Management"=1:2),digits =3,omit.coef ="Intercept",custom.coef.names=c("Average Tariff","Ln(Cap/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\The Average Tariff is the average of the tariffs according to the ciiu 4 code of the firm.To get the merge between CIIU4 and Tariffs, we use tables from DANE and International Trade Centre - ITC. This table uses this Average Tariffs without controls:column (1), and with full controls:column (2).}"))
+
+
+########
+m30<-lm(lerner~ avgtariff,data =g7)
+
+#FE industry 4 digits and all controls
+m31 <- lm(lerner ~avgtariff+Management+lnfape+lnempltot+staff_with_college_degree,data = g7)
+
+texreg(list(m30, m31),caption.above = TRUE, caption="Tariffs and Market competition", fontsize = "normalsize", custom.header = list("Lerner Index"=1:2),digits =3,omit.coef ="Intercept",custom.coef.names=c("Average Tariff","Management","Ln(Cap/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\The Lerner Index is the gross profits over sales, where gross profits equals to production value less material costs and wage costs in 2018.The Average Tariff is the average of the tariffs according to the CIIU4 code of the firm.This table uses average tariffs from International Trade Centre - ITC}"))
+
+```
+
+
+
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+
+##Listing variables Trade and Management
+
+#Logarithms
+total$lnsales_x<-log(1+total$sales_x)
+total$lniraw_m<-log(1+total$raw_material_m)
+total$lntrade<-log(1+total$sales_x+total$raw_material_m)
+
+#count(total,"shareraw_m")
+#anyNA(total$shareraw_m)
+
+##Shares 
+total$sharesales_x<-total$sales_x/total$sales
+total$shareraw_m<-total$raw_material_m/total$raw_material
+total$sharetrade<-(total$sales_x+total$raw_material_m)/(total$sales+total$raw_material)
+
+#Dummies
+#xer: Exporter
+#mer: Importer
+#traded: Exporter or Importer
+total<-total %>%
+  mutate(xer = if_else(sales_x >0, 1,0))%>%
+  mutate(mer = if_else(raw_material_m >0, 1,0))%>%
+  mutate(traded=if_else(sales_x+raw_material_m>0,1,0))
+
+sum(total$xer)
+
+# Logarithm and dummies REGRESSIONS
+g8<-subset(total,select=c(NORDEMP,xer,mer,traded,lnsales_x,lniraw_m,lntrade,Management,dpto,lnfape,lnempltot,staff_with_college_degree,CIIU4))
+g8<-NaRV.omit(g8)
+
+#Logarithms
+m32<-lm(lnsales_x ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
+m33<-lm(lniraw_m ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
+m34<-lm(lntrade ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
+
+#Dummies
+m35<-lm(xer ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
+m36<-lm(mer ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
+m37<-lm(traded ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
+
+#Share REGRESSION
+g9<-subset(total,select=c(NORDEMP,sharesales_x,shareraw_m,sharetrade,Management,dpto,lnfape,lnempltot,staff_with_college_degree,CIIU4))
+g9<-NaRV.omit(g9)
+
+m38<-lm(sharesales_x ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g9)
+m39<-lm(shareraw_m ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g9)
+m40<-lm(sharetrade ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g9)
+
+
+texreg(list(m32, m33,m34),caption.above = TRUE, caption="Logarithms of trade outcomes and Management", fontsize = "normalsize",digits =3,custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("Log(1+Exports)","Log(1+Imports)","Log(1+Exports+Imports)"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{0.8\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between logartithm of (1+value of exported products), logarithm of (1+value of imported inputs) and logarithm of (1+value of exported products + imported inputs) at firm level and firm's management practices.It includes some controls: Ln(Cap/Emp), Ln(Employment) and the percent of staff with college degree. All regressions include fixed effects for firm location (department) and 4 digits - CIIU 4 (industry).}"))
+
+
+texreg(list(m35,m36,m37),caption.above = TRUE, caption="Dummies of trade outcomes and Management", fontsize = "normalsize",digits =3,custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("Dummy Exports","Dummy Imports","Dummy Trade"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{0.8\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between export status (Dummy Exports = 1 if value of exported products>0 and 0 otherwise), import status (Dummy Import=1 if value of imported inputs>0 and 0 otherwise), trade status (Dummy Trade=1 if value of exports + imports>0 and 0 otherwise) and firm's management practices.It includes some controls: Ln(Cap/Emp), Ln(Employment) and the percent of staff with college degree. All regressions include fixed effects for firm location (department) and 4 digits - CIIU 4 (industry).}"))
+
+texreg(list(m38,m39,m40),caption.above = TRUE, caption="Shares of trade outcomes and Management", fontsize = "normalsize",digits =3,custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("Share of exported products","Share of imported inputs","Share of traded"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{0.9\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between Share of exported products = exports/total sales, Share of imported inputs=imports/total inputs, Share of traded=(exports+imports)/(total sales + inputs) and firm's management practices.It includes some controls: Ln(Cap/Emp), Ln(Employment) and the percent of staff with college degree. All regressions include fixed effects for firm location (department) and 4 digits - CIIU 4 (industry).}"))
+
+
+```
+
+
+
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE}
+
+set1<-subset(total,select=c(NORDEMP,Management,lnempltot,empltot,CIIU4,RDi,lnRDi_per_empl1,ipr))
+write_dta(set1,"~/Google Drive/Internship_WB_Summer/Edit/Github/Data_Pulso/set1.dta")
+
 #fig.width = 2.5, fig.height=2.5
 
 #graphs (three first questions)
