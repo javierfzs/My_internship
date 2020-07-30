@@ -1044,8 +1044,36 @@ count(total,"ciiu4_2_d")
 #weighted input tariffs
 wit<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/weighted_input_tariffs.csv")
 
+total<-merge(total,wit,by="ciiu4_2_d",all.x=TRUE)
 
+total<-total%>%
+  relocate(ciiu4_2_d, .before = wit)%>%
+  relocate(CIIU4, .before = ciiu4_2_d)
 
 ```
 
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+
+total<-merge(total,g5[ , c("NORDEMP","lna")],by="NORDEMP",all.x =TRUE)
+
+total$avgtariff_2 <- ave(total$avgtariff, total$ciiu4_2_d)
+
+total<-total%>%
+  relocate(avgtariff, .before = wit)
+
+m42<-lm(Management ~ avgtariff_2+wit,data=total)
+summary(m42)
+
+total$logwit<-log(total$wit+1)
+
+total$logavgtariff<-log(total$avgtariff+1)
+
+count(total,"logwit")
+
+
+
+
+
+
+```
 
