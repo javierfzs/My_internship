@@ -36,6 +36,8 @@ library(tinytex)
 #tinytex::tlmgr_update()
 options(tinytex.verbose = TRUE)
 #install.packages("booktabs")
+#install.packages("miceadds")
+
 
 library(tidyverse)
 library(ggplot2)
@@ -55,6 +57,7 @@ library(plm)
 library(fastDummies)
 library(texreg)
 library(fixest)
+library(miceadds)
 
 
 library(haven)
@@ -163,7 +166,7 @@ Edit_2017_2018_2$avg_inc_q = rowMeans(Edit_2017_2018_2[,c(716,705,717,711,712,71
 
 library(haven)
 #reading Annual Manufacturing Survey from Colombia
-Eam_2018_1 <- read_dta("~/Google Drive/Internship_WB_Summer/EAM/EAM_2018/EAM_2018_30june.dta")
+Eam_2018_1 <- read_dta("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/EAM_2018_30june.dta")
 
 ###proportion of multiplants
 count_nordemp_eam<-data.frame(count(Eam_2018_1,"nordemp"))
@@ -578,49 +581,28 @@ g1_2<-NaRV.omit(g1_2)
 g1_3<-subset(total,select=c(NORDEMP,profoversales,Management,lnfape,lniipe,lnempltot,staff_with_college_degree,CIIU4,dpto))
 g1_3<-NaRV.omit(g1_3)
 
-m1 <- plm(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
-                      index = "CIIU4",
-                      effect = "individual", 
-                      model = "within",
-                      data = g1_1)
 
-m2 <- plm(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
-                      index = "dpto",
-                      effect = "individual", 
-                      model = "within",
-                      data = g1_1)
+m1 <- miceadds::lm.cluster(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree+factor(CIIU4),cluster="CIIU4", data = g1_1)
+
+
+m2 <- miceadds::lm.cluster(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree+factor(dpto),cluster="dpto",data = g1_1)
 
 m3<-lm(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,data=g1_1)
 
 #Log(sales/employees)
 
-m4 <- plm( lnsales~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
-                      index = "CIIU4",
-                      effect = "individual", 
-                      model = "within",
-                      data = g1_2)
+m4 <- miceadds::lm.cluster( lnsales~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree+factor(CIIU4),cluster="CIIU4",data = g1_2)
 
-m5 <- plm(lnsales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
-                      index = "dpto",
-                      effect = "individual", 
-                      model = "within",
-                      data = g1_2)
+m5 <- miceadds::lm.cluster(lnsales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree+factor(dpto),cluster="dpto",data = g1_2)
 
 m6<-lm(lnsales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,data=g1_2)
 
 #Log(profit/employees)
 
-m7 <- plm(profoversales~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
-                      index = "CIIU4",
-                      effect = "individual", 
-                      model = "within",
+m7 <- miceadds::lm.cluster(profoversales~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree+factor(CIIU4),cluster="CIIU4",
                       data = g1_3)
 
-m8 <- plm(profoversales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,
-                      index = "dpto",
-                      effect = "individual", 
-                      model = "within",
-                      data = g1_3)
+m8 <- miceadds::lm.cluster(profoversales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree+factor(dpto),cluster="dpto",data = g1_3)
 
 m9<-lm(profoversales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,data=g1_3)
 
@@ -638,7 +620,8 @@ m9<-lm(profoversales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_deg
 #          font.size = "footnotesize")
 
 
-texreg(list(m1, m2,m3,m4,m5,m6,m7,m8,m9),caption.above = TRUE, caption="Firm Management Scores and Performance",fontsize = "small",   custom.header = list("Ln(Output/Emp)"=1:3,"Ln(Sales/Emp)"=4:6, "Profit/Sales"=7:9),digits =2,omit.coef ="Intercept",custom.coef.names=c("Management","Ln(Cap/Emp)", "Ln(Input/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9}")) 
+
+texreg(list(m1, m2,m3,m4,m5,m6,m7,m8,m9),caption.above = TRUE, caption="Firm Management Scores and Performance",fontsize = "small", custom.header = list("Ln(Output/Emp)"=1:3,"Ln(Sales/Emp)"=4:6, "Profit/Sales"=7:9),digits =2,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)", "Ln(Input/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9}")) 
 
 
 
@@ -726,7 +709,18 @@ m21<-lm(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree
 #          digits = 2,
 #          notes.align = "l",font.size = "small")
 
-texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption="Firm Management Scores and Performance",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:3,"(Profits/sales)"=4:6, "RDi/Emp"=7:9),digits =2,omit.coef ="Intercept",custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9.}")) 
+
+rob_se2 <- list(sqrt(diag(vcovHC(m13, type = "HC1"))),
+               sqrt(diag(vcovHC(m14, type = "HC1"))),
+               sqrt(diag(vcovHC(m15, type = "HC1"))),
+               sqrt(diag(vcovHC(m16, type = "HC1"))),
+               sqrt(diag(vcovHC(m17, type = "HC1"))),
+               sqrt(diag(vcovHC(m18, type = "HC1"))),
+               sqrt(diag(vcovHC(m19, type = "HC1"))),
+               sqrt(diag(vcovHC(m20, type = "HC1"))),
+               sqrt(diag(vcovHC(m21, type = "HC1"))))
+
+texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption="Firm Management Scores and Performance",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:3,"(Profits/sales)"=4:6, "RDi/Emp"=7:9),digits =2,override.se = rob_se2, omit.coef ="Intercept",custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9.}")) 
 
 ```
 
@@ -763,7 +757,13 @@ reg_dpvlog4<-lm(log_Value_Added_per_Employee ~ Management+lnRDi_per_empl1+ICT_pe
 #          omit="Constant",
 #          digits = 3)
 
-texreg(list(reg_dpvlog1, reg_dpvlog2,reg_dpvlog3,reg_dpvlog4),caption.above = TRUE, caption="Drivers of Productivity Variation",fontsize = "normalsize",   custom.header = list("Log(VA/Emp)"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses.Dependent variable is firm level log(Value Added/Employment). Right-hand-side variables are Management score, RDi is measured as log(1+RDi intensity), where RDi intensity is the total domestic Research, Development and innovation expenditure in 2018 divided by total domestic employment, ICT/Emp is investment per worker (spending on information and communication technology hardware and software per employee), Degree is measured by the share of employees (managers and non-managers) with a college degree.Missing values have been replaced by zero for RDi and by means for the other variables.}"))
+
+rob_se3 <- list(sqrt(diag(vcovHC(reg_dpvlog1, type = "HC1"))),
+               sqrt(diag(vcovHC(reg_dpvlog2, type = "HC1"))),
+               sqrt(diag(vcovHC(reg_dpvlog3, type = "HC1"))),
+               sqrt(diag(vcovHC(reg_dpvlog4, type = "HC1"))))
+
+texreg(list(reg_dpvlog1, reg_dpvlog2,reg_dpvlog3,reg_dpvlog4),caption.above = TRUE, caption="Drivers of Productivity Variation",fontsize = "normalsize", override.se = rob_se3, custom.header = list("Log(VA/Emp)"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses.Dependent variable is firm level log(Value Added/Employment). Right-hand-side variables are Management score, RDi is measured as log(1+RDi intensity), where RDi intensity is the total domestic Research, Development and innovation expenditure in 2018 divided by total domestic employment, ICT/Emp is investment per worker (spending on information and communication technology hardware and software per employee), Degree is measured by the share of employees (managers and non-managers) with a college degree.Missing values have been replaced by zero for RDi and by means for the other variables.}"))
 
 ```
 
@@ -787,7 +787,11 @@ m23 <- plm(Management ~ lerner+lnfape+lnempltot+staff_with_college_degree,
                       model = "within",
                       data = g5)
 
-texreg(list(m22, m23),caption.above = TRUE, caption="Product Market Competition and Management", fontsize = "normalsize", custom.header = list("Management"=1:2),digits =3,omit.coef ="Intercept",custom.coef.names=c("Lerner Index","Ln(Cap/Emp)", "Ln(Employment","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\The Lerner Index is the gross profits over sales, where gross profits equals to production value less material costs and wage costs in 2018.This table uses this Lerner index without controls:column (1), and with four-digit industry fixed effects and full controls:column (2).}"))
+
+rob_se3 <- list(sqrt(diag(vcovHC(m22, type = "HC1"))),
+               sqrt(diag(vcovHC(m23, type = "HC1"))))
+
+texreg(list(m22, m23),caption.above = TRUE, caption="Product Market Competition and Management", fontsize = "normalsize", custom.header = list("Management"=1:2),digits =3,override.se = rob_se3,  omit.coef ="Intercept",custom.coef.names=c("Lerner Index","Ln(Cap/Emp)", "Ln(Employment","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\The Lerner Index is the gross profits over sales, where gross profits equals to production value less material costs and wage costs in 2018.This table uses this Lerner index without controls:column (1), and with four-digit industry fixed effects and full controls:column (2).}"))
 
 ```
 
@@ -822,12 +826,17 @@ m24<-lm(lna ~ Management,data=g6)
 
 m25<-lm(lna ~ Management+lnRDi_per_empl1, data =g6)
 
-m26<-lm(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee, data =g6)
+m26<-lm(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee, data=g6)
 
 m27<-lm(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee+staff_with_college_degree, data =g6)
 
+rob_se5 <- list(sqrt(diag(vcovHC(m24, type = "HC1"))),
+               sqrt(diag(vcovHC(m25, type = "HC1"))),
+               sqrt(diag(vcovHC(m26, type = "HC1"))),
+               sqrt(diag(vcovHC(m27, type = "HC1"))))
 
-texreg(list(m24, m25,m26,m27),caption.above = TRUE, caption="Drivers of Total Factor Productivity", fontsize = "normalsize", custom.header = list("Revenue-based Total Factor Productivity - RTFP"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. Dependent variable is firm level TFP built from industry firm-level. Independent variables are management score, RDi measured as log(1+RDi intensity) where RDi intensity is the total domestic RDi expenditure divided by total domestic employment, IT investment per worker, skill measured by the share of employees (managers and non-managers) with a college
+
+texreg(list(m24, m25,m26,m27),caption.above = TRUE, caption="Drivers of Total Factor Productivity", fontsize = "normalsize", custom.header = list("Revenue-based Total Factor Productivity - RTFP"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), override.se = rob_se5, custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. Dependent variable is firm level TFP built from industry firm-level. Independent variables are management score, RDi measured as log(1+RDi intensity) where RDi intensity is the total domestic RDi expenditure divided by total domestic employment, IT investment per worker, skill measured by the share of employees (managers and non-managers) with a college
 degree.Missing values have been replaced by zero for RDi and by means for the other variables.}"))
 
 
@@ -843,7 +852,8 @@ degree.Missing values have been replaced by zero for RDi and by means for the ot
 #average tariffs: https://www.macmap.org/
 # ciiu-product: https://www.dane.gov.co/index.php/sistema-estadistico-nacional-sen/normas-y-estandares/nomenclaturas-y-clasificaciones/tablas-correlativas
 
-tarciiu<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/Data_Expo/Tariffs_CIIU4.csv")
+tarciiu<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Tariffs_CIIU4.csv")
+#count(tarciiu,"CIIU4")
 
 avgtarciiu<-data.frame(aggregate( avgtariff ~ CIIU4,tarciiu, mean ))
 
@@ -852,32 +862,45 @@ total <- merge(total,avgtarciiu,by="CIIU4",all=FALSE)
 total<-total%>%
   relocate(CIIU4, .before = TIPOLO)
 
+##China import share
+impo_china_ciiu4<-read_dta("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/impo_china_ciiu4.dta")
+total <- merge(total,impo_china_ciiu4,by="CIIU4",all.x=TRUE)
 #anyNA(total$avgtariff)
 
-g7<-subset(total,select=c(NORDEMP,Management,avgtariff,lnfape,lnempltot,staff_with_college_degree,CIIU4,lerner))
+g7<-subset(total,select=c(NORDEMP,Management,avgtariff,lnfape,lnempltot,staff_with_college_degree,CIIU4,lerner,chshare,dpto))
 g7<-NaRV.omit(g7)
 
-m28<-lm( Management ~ avgtariff,data =g7)
 
-#FE industry 4 digits and all controls
-m29 <- lm(Management ~avgtariff+lnfape+lnempltot+staff_with_college_degree,data = g7)
+m28<-miceadds::lm.cluster( Management ~ lerner+factor(dpto),data =g7,cluster="CIIU4")
 
-texreg(list(m28, m29),caption.above = TRUE, caption="Tariffs and Management", fontsize = "normalsize", custom.header = list("Management"=1:2),digits =3,omit.coef ="Intercept",custom.coef.names=c("Average Tariff","Ln(Cap/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\The Average Tariff is the average of the tariffs according to the ciiu 4 code of the firm.To get the merge between CIIU4 and Tariffs, we use tables from DANE and International Trade Centre - ITC. This table uses this Average Tariffs without controls:column (1), and with full controls:column (2).}"))
+m29 <- miceadds::lm.cluster(Management ~lerner+avgtariff+factor(dpto),data = g7, cluster="CIIU4")
+
+m30<-miceadds::lm.cluster(Management ~lerner+avgtariff+I((lerner*avgtariff))+factor(dpto), cluster="CIIU4",data =g7)
+
+m31<-miceadds::lm.cluster(Management ~lerner+avgtariff+I((lerner*avgtariff))+lnfape+lnempltot+staff_with_college_degree+factor(dpto),cluster="CIIU4",data =g7)
 
 
-########
-m30<-lm(lerner~ avgtariff,data =g7)
+m31cl<-miceadds::lm.cluster(Management~lerner+avgtariff+I((lerner*avgtariff))+lnfape+lnempltot+staff_with_college_degree+factor(dpto),cluster="CIIU4",data =g7)
 
-#FE industry 4 digits and all controls
-m31 <- lm(lerner ~avgtariff+Management+lnfape+lnempltot+staff_with_college_degree,data = g7)
 
-texreg(list(m30, m31),caption.above = TRUE, caption="Tariffs and Market competition", fontsize = "normalsize", custom.header = list("Lerner Index"=1:2),digits =3,omit.coef ="Intercept",custom.coef.names=c("Average Tariff","Management","Ln(Cap/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\The Lerner Index is the gross profits over sales, where gross profits equals to production value less material costs and wage costs in 2018.The Average Tariff is the average of the tariffs according to the CIIU4 code of the firm.This table uses average tariffs from International Trade Centre - ITC}"))
+#Chinese imports
+m28b<-miceadds::lm.cluster( Management ~ chshare,cluster="CIIU4",data =g7)
+m29b <- miceadds::lm.cluster(Management ~chshare+lnfape+lnempltot+staff_with_college_degree,cluster="CIIU4",data = g7)
+
+texreg(list(m28, m29,m30,m31),caption.above = TRUE, caption="Market Competition and Management", fontsize = "normalsize", custom.header = list("Management"=1:4),digits =3,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Lerner Index","Average Tariff","Inter Lerner*Tariff","Ln(Cap/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.8\\linewidth}{\\vspace{3pt}%stars. \\\\Lerner Index is the gross profits over sales, where gross profits equals to production value less material costs and wage costs in 2018.The Average Tariff is the average of the tariffs according to the ciiu 4 code of the firm.For the merge between CIIU4 and Tariffs, we use tables from DANE and International Trade Centre - ITC. In the last column, it includes  a interaction between Lerner Index and Average Tariffs and full controls. All regressions have Location Fixed Effects by department in Colombia.}"))
+
+
+texreg(list(m28b, m29b),caption.above = TRUE, caption="China Import Share and Management", fontsize = "normalsize", custom.header = list("Management"=1:2),digits =3,omit.coef ="Intercept",custom.coef.names=c("China Import Share","Ln(Cap/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\The China Import Share means imports from China / Total imports for each industry (4 digits CIIU rev4). This table uses this China Import Share without controls:column (1), and with full controls:column (2).}"))
+
+
+
 
 ```
 
 
 
 ```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+
 
 ##Listing variables Trade and Management
 
@@ -910,22 +933,22 @@ g8<-subset(total,select=c(NORDEMP,xer,mer,traded,lnsales_x,lniraw_m,lntrade,Mana
 g8<-NaRV.omit(g8)
 
 #Logarithms
-m32<-lm(lnsales_x ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
-m33<-lm(lniraw_m ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
-m34<-lm(lntrade ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
+m32<-miceadds::lm.cluster(lnsales_x ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8,cluster = "CIIU4")
+m33<-miceadds::lm.cluster(lniraw_m ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g8)
+m34<-miceadds::lm.cluster(lntrade ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g8)
 
 #Dummies
-m35<-lm(xer ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
-m36<-lm(mer ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
-m37<-lm(traded ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g8)
+m35<-miceadds::lm.cluster(xer ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g8)
+m36<-miceadds::lm.cluster(mer ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g8)
+m37<-miceadds::lm.cluster(traded ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g8)
 
 #Share REGRESSION
 g9<-subset(total,select=c(NORDEMP,sharesales_x,shareraw_m,sharetrade,Management,dpto,lnfape,lnempltot,staff_with_college_degree,CIIU4))
 g9<-NaRV.omit(g9)
 
-m38<-lm(sharesales_x ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g9)
-m39<-lm(shareraw_m ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g9)
-m40<-lm(sharetrade ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),data = g9)
+m38<-miceadds::lm.cluster(sharesales_x ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g9)
+m39<-miceadds::lm.cluster(shareraw_m ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g9)
+m40<-miceadds::lm.cluster(sharetrade ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g9)
 
 
 texreg(list(m32, m33,m34),caption.above = TRUE, caption="Logarithms of trade outcomes and Management", fontsize = "normalsize",digits =3,custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("Log(1+Exports)","Log(1+Imports)","Log(1+Exports+Imports)"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{0.8\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between logartithm of (1+value of exported products), logarithm of (1+value of imported inputs) and logarithm of (1+value of exported products + imported inputs) at firm level and firm's management practices.It includes some controls: Ln(Cap/Emp), Ln(Employment) and the percent of staff with college degree. All regressions include fixed effects for firm location (department) and 4 digits - CIIU 4 (industry).}"))
@@ -938,6 +961,29 @@ texreg(list(m38,m39,m40),caption.above = TRUE, caption="Shares of trade outcomes
 
 ```
 
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+
+# Homogeneous and Heterogeneous
+rauch<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Sitc_con_lib_ciiu4July23_.csv")
+
+rauch_unique<-rauch[!duplicated(rauch$CIIU4), ]
+
+total<-merge(total,rauch_unique,by="CIIU4",all.x = TRUE)
+#count(total,"LIBERAL")
+
+total<-total%>%
+  mutate(dummy_diff=ifelse(LIBERAL=="n",1,0))
+
+g10<-subset(total,select=c(NORDEMP,xer,mer,traded,lnsales_x,lniraw_m,lntrade,Management,dummy_diff,dpto,lnfape,lnempltot,staff_with_college_degree,CIIU4))
+g10<-NaRV.omit(g10)
+
+m41<-miceadds::lm.cluster(lnsales_x ~Management+I((Management*dummy_diff))+lnfape+lnempltot+staff_with_college_degree+factor(dpto),cluster="CIIU4",data = g10)
+
+
+texreg(list(m41),caption.above = TRUE, caption="Differentiated Products and Management", fontsize = "normalsize",digits =3,custom.coef.names=c("Management","Inter Manag*Diff", "Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("Log(1+Exports)"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{0.6\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between logartithm of (1+value of exported products) at firm level and firm's management practices.It includes  a interaction between Management and a Dummy of Differentiated Product:Inter Manag*Diff= 1 when the firm product is differentiated and O otherwise, using Rauch clasiffication. Since Rauch(1999) classifies products at the level of 4 digits of industry, this table assumes that the firm produces only one good, either homogeneous or differentiated, according to its industry(CIIU rev4).In addition, it includes full controls: Ln(Cap/Emp), Ln(Employment) and the percent of staff with college degree. The regression has fixed effects for firm location (department).}"))
+
+
+```
 
 
 
@@ -945,6 +991,8 @@ texreg(list(m38,m39,m40),caption.above = TRUE, caption="Shares of trade outcomes
 
 set1<-subset(total,select=c(NORDEMP,Management,lnempltot,empltot,CIIU4,RDi,lnRDi_per_empl1,ipr))
 write_dta(set1,"~/Google Drive/Internship_WB_Summer/Edit/Github/Data_Pulso/set1.dta")
+
+write_dta(total,"~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/total.dta")
 
 #fig.width = 2.5, fig.height=2.5
 
@@ -986,6 +1034,16 @@ q3<-ggplot(Edit_2017_2018_2) +
 
 ggarrange(q1, q2, q3 +rremove("x.text"),
         ncol = 2, nrow = 2,widths = 0.5,heights = 0.5)+theme(plot.title = element_text(hjust = 0.5))
+
+NORDEMP=subset(total, select = c(NORDEMP))
+#write_dta(NORDEMP,"~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/NORDEMP.dta")
+
+
+count(total,"ciiu4_2_d")
+
+#weighted input tariffs
+wit<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/weighted_input_tariffs.csv")
+
 
 
 ```
