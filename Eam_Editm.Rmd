@@ -722,13 +722,6 @@ rob_se2 <- list(sqrt(diag(vcovHC(m13, type = "HC1"))),
 
 texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption="Firm Management Scores and Performance",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:3,"(Profits/sales)"=4:6, "Log(1+RDi/Emp)"=7:9),digits =2,override.se = rob_se2, omit.coef ="Intercept",custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9.The regressions include clustered standard errors by CIIU4 and region, depending on the fixed effect applied}")) 
 
-###### TO REMOVE####
-
-texreg(list(m13, m14,m15,m19,m20,m21),caption.above = TRUE, caption="Firm Management Scores and Performance",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:3, "Log(1+RDi/Emp)"=4:6),digits =2,override.se = rob_se2, omit.coef ="Intercept",custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6"),custom.note = ("\\parbox{0.7\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9.The regressions include clustered standard errors by CIIU4 and region, depending on the fixed effect applied}")) 
-
-
-
-
 
 ```
 
@@ -886,27 +879,6 @@ rob_se5 <- list(sqrt(diag(vcovHC(m24, type = "HC1"))),
 
 texreg(list(m24, m25,m26,m27),caption.above = TRUE, caption="Drivers of Total Factor Productivity", fontsize = "normalsize", custom.header = list("Revenue-based Total Factor Productivity - RTFP"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), override.se = rob_se5, custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.9\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. Dependent variable is firm level TFP built from industry firm-level. Independent variables are management score, RDi measured as log(1+RDi intensity) where RDi intensity is the total domestic RDi expenditure divided by total domestic employment, IT investment per worker, skill measured by the share of employees (managers and non-managers) with a college
 degree.Missing values have been replaced by zero for RDi and by means for the other variables.The regressions include robust standard errors}"))
-
-
-#### To remove
-
-m24_b<-lm(lna ~ Management,data=g6_b)
-
-m25_b<-lm(lna ~ Management+lnRDi_per_empl1, data =g6_b)
-
-m26_b<-lm(lna ~ Management+lnRDi_per_empl1, data=g6_b)
-
-m27_b<-lm(lna ~ Management+lnRDi_per_empl1+staff_with_college_degree, data =g6_b)
-
-rob_se5_b <- list(sqrt(diag(vcovHC(m24_b, type = "HC1"))),
-               sqrt(diag(vcovHC(m25_b, type = "HC1"))),
-               sqrt(diag(vcovHC(m26_b, type = "HC1"))),
-               sqrt(diag(vcovHC(m27_b, type = "HC1"))))
-
-texreg(list(m24_b, m25_b,m26_b,m27_b),caption.above = TRUE, caption="Drivers of Total Factor Productivity", fontsize = "normalsize", custom.header = list("Revenue-based Total Factor Productivity - RTFP"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi","Degree"), override.se = rob_se5_b, custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.7\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. Dependent variable is firm level TFP built from industry firm-level. Independent variables are management score, RDi measured as log(1+RDi intensity) where RDi intensity is the total domestic RDi expenditure divided by total domestic employment, IT investment per worker, skill measured by the share of employees (managers and non-managers) with a college
-degree.Missing values have been replaced by zero for RDi and by means for the other variables.The regressions include robust standard errors}"))
-
-
 
 
 ```
@@ -1070,6 +1042,7 @@ m34<-miceadds::lm.cluster(lntrade ~Management+lnfape+lnempltot+staff_with_colleg
 m35<-miceadds::lm.cluster(xer ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g8)
 m36<-miceadds::lm.cluster(mer ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g8)
 m37<-miceadds::lm.cluster(traded ~Management+lnfape+lnempltot+staff_with_college_degree+factor(CIIU4)+factor(dpto),cluster = "CIIU4",data = g8)
+
 
 #Share REGRESSION
 g9<-subset(total,select=c(NORDEMP,sharesales_x,shareraw_m,sharetrade,Management,dpto,lnfape,lnempltot,staff_with_college_degree,CIIU4))
