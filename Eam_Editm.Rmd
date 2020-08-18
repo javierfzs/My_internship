@@ -203,13 +203,43 @@ colnames(df0)[6]<-"Exporters"
 
 df0 <- merge(df0,count_nordemp_eam,by="nordemp",all=FALSE)
 
-#selection fixed effect variables (dpto,ciiu4)
-dffe1<-subset(Eam_2018_1,select=c(nordemp,dpto,ciiu4))
-#picks the first in each block of repetitions of establishments
-dffe2<-dffe1[ !duplicated(dffe1$nordemp), ]
-colnames(dffe2)[1] <- "NORDEMP"
+#selection variables: dpto,ciiu4
+dpto_ciiu4<-subset(Eam_2018_1,select=c(nordemp,dpto,ciiu4,VALORVEN))
+#Filter for uniplants: firms with just one NORDEMP (one plant)
+# counting 
+count_dpto_ciiu4<-data.frame(count(dpto_ciiu4,"nordemp"))
+# uniplant=1, multiplant=0 (else)
+count_dpto_ciiu4<-count_dpto_ciiu4 %>%
+   mutate(uniplant = if_else(freq =="1", 1,0))
+#filter for uniplant
+uniplant_filter<-count_dpto_ciiu4[!(count_dpto_ciiu4$uniplant=="0"),]
+#dpto and ciiu4 for uniplants
+uniplant_filter<-merge(uniplant_filter,dpto_ciiu4,by="nordemp",all.x = TRUE)
+
+#Filter for multiplants
+multiplant_filter<-count_dpto_ciiu4[(count_dpto_ciiu4$uniplant=="0"),]
+#Indicator of multiplant
+dpto_ciiu4<-merge(dpto_ciiu4,multiplant_filter,by="nordemp", all.x = TRUE)
+#filter for multiplants
+multiplant_filter<-NaRV.omit(dpto_ciiu4)
+
+#pivot table with max of VALORVEN from multiplant_filter: 
+multiplant_filter<-multiplant_filter%>% 
+      group_by(nordemp) %>% 
+      filter(VALORVEN==max(VALORVEN))
+colnames(multiplant_filter)[1] <- "NORDEMP"
+multiplant_filter<-multiplant_filter[!duplicated(multiplant_filter$NORDEMP), ]
+#subset variables in order to use rbind
+uniplant_filter<-subset(uniplant_filter,select=-c(VALORVEN,freq,uniplant))
+colnames(uniplant_filter)[1]<-"NORDEMP"
+multiplant_filter<-subset(multiplant_filter,select=-c(VALORVEN,freq,uniplant))
+uniplant_filter<-data.frame(uniplant_filter)
+multiplant_filter<-data.frame(multiplant_filter)
+###new ciiu4 and dpto
+dpto_ciiu4_unique<-rbind(multiplant_filter, uniplant_filter)
 
 dft=subset(df0, select = -c(nordemp,freq))
+
 
 stargazer(dft,
           header = FALSE,
@@ -324,7 +354,7 @@ colnames(Eam_2018_2)[13]<-"sales_x"
 #Natural join (all=FALSE, only intersection)
 total <- merge(Edit_2017_2018_2,Eam_2018_2,by="NORDEMP",all=FALSE)
 #Natural join with ciiu4 and dto
-total<-merge(total,dffe2,by="NORDEMP",all=FALSE)
+total<-merge(total,dpto_ciiu4_unique,by="NORDEMP",all=FALSE)
 
 
 n<-data.frame(Database=c("EDIT 1:All observations","EDIT 2:At least 11 non-missing values","EAM 1:All observations","EAM 2:Collapsed data","Merge EDIT 2 - EAM 2"),n=c(nrow(Edit_2017_2018_1),nrow(Edit_2017_2018_2),nrow(Eam_2018_1),nrow(Eam_2018_2),nrow(total)))
@@ -347,7 +377,6 @@ dft2=subset(total, select = c(NORDEMP,sales,valueadded,salesEdit,sales_x,II1R10C
 #Cleaning
 dft2<-dft2[!(dft2$sales=="0"|dft2$salesEdit=="0"),]
 
-#javis<-data.frame(count(dft2,"sharesRDi"))
 
 dft2<-dft2%>%
   mutate(sales=sales/1000)%>%
