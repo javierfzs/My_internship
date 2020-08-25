@@ -13,7 +13,7 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r echo=FALSE,warning=(FALSE),message=FALSE}
+```{r LIBRARIES AND AVERAGES OF MANAGEMENT, fig.show='hide', message=FALSE, warning=FALSE, include=FALSE, results='hide'}
 
 # LIBRARIES AND AVERAGES OF MANAGEMENT
 
@@ -68,6 +68,7 @@ library(miceadds)
 #install.packages("expss")
 library(expss)
 library(data.table)
+#devtools::install_github("haozhu233/kableExtra")
 
 
 library(haven)
@@ -145,13 +146,6 @@ Edit_2017_2018_1$na_16_q<-rowSums(is.na(Edit_2017_2018_1[, c(678,679,694,695,696
 #filtering the data set: From 16 Bloom Questions,at least 11 non-missing values (max 5 missing values)
 Edit_2017_2018_2 <- Edit_2017_2018_1[Edit_2017_2018_1$na_16_q <=5,]
 
-
-
-```
-
-
-```{r results="asis",echo=FALSE,warning=(FALSE),message=FALSE}
-
 #Management Score, Non-incentives and incentives questions
 
 # 1. Total Average (16 questions)
@@ -172,9 +166,9 @@ Edit_2017_2018_2$avg_inc_q = rowMeans(Edit_2017_2018_2[,c(716,705,717,711,712,71
 Matching the Innovation and Technology Survey EDIT 2017-2018 (acronym in Spanish) with Annual Manufacturing Survey 2018 (EAM), we analyze the relationship between the performance and management at firm level for Colombia in 2018. The management is a significant driver of variation in productivity, development and innovation (R&Di). Also, a statistically significant relationship is observed for the number of export destinations, products and export revenues. 
 
 
-```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis",fig.show='hide',results='hide'}
+```{r Data Frame for Descriptive Statistics and filters for location (department: dpto), fig.show='hide', message=FALSE, warning=FALSE, include=FALSE, results='hide'}
 
-#Data Frame to Descriptive Statistics
+#Data Frame for Descriptive Statistics and filters for location (department: dpto)
 
 library(haven)
 #reading Annual Manufacturing Survey from Colombia
@@ -185,9 +179,6 @@ count_nordemp_eam<-data.frame(count(Eam_2018_1,"nordemp"))
 
 count_nordemp_eam<-count_nordemp_eam %>%
    mutate(Multiplant = if_else(freq >1, 1,0))
-
-
-
 
 ##dataframe for stargazer
 df0<-data.frame(Edit_2017_2018_2$NORDEMP,Edit_2017_2018_2$Management,Edit_2017_2018_2$avg_non_inc_q,Edit_2017_2018_2$avg_inc_q,Edit_2017_2018_2$IV1R11C2)
@@ -251,7 +242,7 @@ For our regressions, we aggregate those 16 questions into a single measure, whic
 
 The histogram below shows the distribution for magement score (16 questions). As you can see, the distribution is skewed to the left, where the total number of observations is 7,529 in EDIT. This histogram includes all observations with at least 11 non-missing responses to management questions.
 
-```{r echo=FALSE,warning=(FALSE),message=FALSE, fig.show='hide',results='hide'}
+```{r Histogram Colombia - USA with only EDIT data, fig.show='hide', message=FALSE, warning=FALSE, include=FALSE, results='hide'}
 
 # Histogram Colombia - USA with only EDIT data
 
@@ -276,10 +267,6 @@ my_over_hist1$USA<-as.numeric(as.character(unlist(my_over_hist1[[2]])))
 my_over_hist1$Colombia<-as.numeric(as.character(unlist(my_over_hist1[[3]])))
 #typeof(my_over_hist$Colombia)
 
-```
-
-```{r echo=FALSE,warning=(FALSE),message=FALSE, fig.show='hide',results='hide'}
-
 # Plot comparing USA and Colombia Scores with all EDIT observations
 
 library(ggplot2)
@@ -293,9 +280,9 @@ ggplot(data=my_over_hist1,aes(x=Score))+
 
 ```
 
-```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis",fig.show='hide',results='hide'}
+```{r Descriptive Statistics (2), fig.show='hide', message=FALSE, warning=FALSE, include=FALSE, results='hide'}
 
-# observations
+# Descriptive Statistics (2)
 
 #aggregating by nordemp and summing dpto or more.
 # As a result, the new variable is Group.1 (KEY) instead nordemp (Nominal change) and the aggregated variable is x instead dpto.
@@ -390,9 +377,9 @@ stargazer(dft2,
 
 ```
 
-```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis", fig.show='hide',results='hide'}
+```{r Histogram for Colombia , fig.show='hide', message=FALSE, warning=FALSE, include=FALSE, results='hide'}
 
-
+# Histogram for Colombia 
 my.hist2<-hist(total$Management, ylab ="Probability", breaks=20)
 
 my.hist2$counts
@@ -415,14 +402,14 @@ According to Bloom(2019) the average U.S Management score (1-16 questions) is 0.
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
 # Histogram Colombia - USA with merge between EDIT - EAM 
+#title = "Management - Colombia vs USA"
 
 library(ggplot2)
 
 ggplot(data=my_over_hist2,aes(x=Score))+
   geom_bar(aes(y=Colombia),stat="identity",position ="identity",alpha=.5,fill='black',color='red') +
   geom_bar(aes(y=USA),stat="identity",position ="identity",alpha=.5,fill='white',color='blue')+ 
-  labs(title = "Manegement - Colombia vs USA with merge EDIT - EAM data",
-       x="Score: Colombia(red) - USA(blue)",
+  labs(x="Score: Colombia(red) - USA(blue)",
        y="Share")+theme(plot.title = element_text(hjust = 0.5))
 ```
 
@@ -553,14 +540,20 @@ Using the column 1 from Table Firm Management Scores and Performance (1)-Appendi
 The Table "Semi-elasticities from bottom to top" shows the changes in exports, products and destinations when increasing the Management Score.
 
 
-```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
+```{r echo=FALSE,results="asis"}
 
 selasticity<-data.frame(mycol1=c("Output / Emp","Value Added / Emp","Exports - For exporters","Exports - For entire #sample:(1+Exp)","Products - For exporters", "Products- For entire sample:(1+Exp)","Destinations - For exporters","Destinations - For #entire sample:(1+Exp)"),mycol2=c("0.24","0.64", "1.82","4.82","0.94","0.8","0.92","0.76"),mycol3=c("6.55%","17.47%", "49.69%","131.59%","25.66%","21.84%","25.12%","20.75%"))
 
-kable(selasticity, col.names =c("Dependent Variable","Coefficient", "From 25pctl to 75pctl"),align = 'c', format = 'latex',caption = "Semi-elasticities from bottom to top")
+#install.packages("kableExtra")
+#options(kableExtra.latex.load_packages = TRUE)
+
+
+kable(selasticity, col.names =c("Dependent Variable","Coefficient", "From 25pctl to 75pctl"),booktabs = T,align = 'c',caption = "Semi-elasticities from bottom to top", "latex")
+
 
 ```
 
+# Appendix
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
@@ -593,7 +586,7 @@ dft<-subset(df0, select = -c(NORDEMP,export2018_per_dest,intinput,freq,export201
 
 stargazer(dft,
           header = FALSE,
-          title = "Descriptive Statistics (1)",
+          title = "Descriptive Statistics",
           digits = 3,
           df = FALSE,
           notes.append=TRUE,
@@ -604,14 +597,14 @@ stargazer(dft,
 ```
 
 
-# Appendix
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
 ##### ggplot#####
+#title="Firm size rises with Management -Non-Linear fit"
 
 p <- ggplot(data = total,                # specify dataset
-            aes(x = Management, y = logempltot2))+labs(x="Management",y="Log Employment", title="Firm size rises with Management -Non-Linear fit") + # Age on x-, Raven on y-axis
+            aes(x = Management, y = logempltot2))+labs(x="Management",y="Log Employment") + # Age on x-, Raven on y-axis
   geom_point(pch = 1,size=0.05)+theme(plot.title = element_text(hjust = 0.5))
 
 q1 <- p +
@@ -764,7 +757,7 @@ texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption=
 ```
 
 
-```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis",fig.show='hide',results='hide'}
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
 
 # Regression for Drivers of Productivity Variation (dpv)
 
