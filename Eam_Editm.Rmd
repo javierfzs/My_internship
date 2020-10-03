@@ -540,7 +540,7 @@ Using the column 1 from Table Firm Management Scores and Performance (1)-Appendi
 The Table "Semi-elasticities from bottom to top" shows the changes in exports, products and destinations when increasing the Management Score.
 
 
-```{r echo=FALSE,results="asis"}
+```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
 selasticity<-data.frame(mycol1=c("Output / Emp","Value Added / Emp","Exports - For exporters","Exports - For entire #sample:(1+Exp)","Products - For exporters", "Products- For entire sample:(1+Exp)","Destinations - For exporters","Destinations - For #entire sample:(1+Exp)"),mycol2=c("0.24","0.64", "1.82","4.82","0.94","0.8","0.92","0.76"),mycol3=c("6.55%","17.47%", "49.69%","131.59%","25.66%","21.84%","25.12%","20.75%"))
 
@@ -596,8 +596,6 @@ stargazer(dft,
 
 ```
 
-
-
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
 ##### ggplot#####
@@ -612,8 +610,6 @@ q1 <- p +
 q1
 
 ```
-
-
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis",fig.show='hide',results='hide'}
 
@@ -1238,7 +1234,7 @@ texreg(list(m82_all,m83_all,m84_all,m84a_all,m85_all,m86_all,m87_all,m88_all),ca
 
 ```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis",fig.show='hide',results='hide'}
 
-####FE and Employment Dummies for homogeneous and heterogeneous
+####FE and Employment Dummies for homogeneous and heterogeneous, discarded as not relevant
 
 
 # For Homogeneous: Dummy_diff=0
@@ -1287,7 +1283,8 @@ texreg(list(m97,m98,m99,m100,m101,m102,m103,m104),caption.above = TRUE, caption=
 
 ```{r echo=FALSE, fig.show='hide', message=FALSE, warning=FALSE, results='hide'}
 
-# ALL FIRMS for homogeneous and Heterogeneous, using Ln(1+Exp)
+# ALL FIRMS for homogeneous and Heterogeneous, using Ln(1+Exp),discarded as not relevant
+
 #Subset with log(1+expo-transaction variable), filtering for homogeneous products
 g12a_hom<-g12a[!(g12a$dummy_diff=="1"),]
 
@@ -1442,7 +1439,7 @@ m107<-miceadds::lm.cluster(logtotexp ~Management+lnfape+size_3+size_2+staff_with
 
 m108<-miceadds::lm.cluster(logtotexp ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+loggdp_d+logdist+comlang_off+contig+I((Management*logdist))+I((Management*loggdp_d))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = pivotexpotran)
 
-texreg(list(m105,m106,m107,m108),caption.above = TRUE, caption="Exports Revenues with country controls", fontsize = "normalsize", custom.header = list("Ln Exports"=1:4),digits =2,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)","Ln (GDP of destination)","Ln Distance","Common Language=1","Contiguous=1", "Inter(Manag*Dist)","Inter(Manag*Produc)"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\ This table examines the relationship between exports revenues of each country and firm's management practices. The column 1 has controls at firm level: capital per employees, dummies of size measured by employment(Big=1,Medium=1), the share of staff with college degree and the average wage.This table uses dummies of size (50<medium<250 workers,big>250; small<50 is excluded by collinearity).The column 2 adds controls at country level: log of GDP of destination country, log of distance between the destination country and Colombia and dummies of common language and geographic contiguity.The regressions include fixed effects for CIIU4 and location and standard errors clustered by firm}"))
+texreg(list(m105,m106,m107,m108),caption.above = TRUE, caption="Exports Revenues with country controls", fontsize = "normalsize", custom.header = list("Ln Exports"=1:4),digits =2,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)","Ln (GDP of destination)","Ln Distance","Common Language=1","Contiguous=1", "Inter(Manag*Dist)","Inter(Manag*Produc)"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\ This table examines the relationship between exports revenues of each country and firm's management practices. The column 1 has controls at firm level: capital per employees, dummies of size measured by employment(Big=1,Medium=1), the share of staff with college degree and the average wage.This table uses dummies of size (medium less than 250 and greater than 50 workers,big greater tha 250; small less than 50 is excluded by collinearity).The column 2 adds controls at country level: log of GDP of destination country, log of distance between the destination country and Colombia and dummies of common language and geographic contiguity.The regressions include fixed effects for CIIU4 and location and standard errors clustered by firm}"))
 
 
 ```
