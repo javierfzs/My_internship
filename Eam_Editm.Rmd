@@ -159,6 +159,10 @@ Edit_2017_2018_2$avg_non_inc_q = rowMeans(Edit_2017_2018_2[,c(678,679,694,695,69
 
 Edit_2017_2018_2$avg_inc_q = rowMeans(Edit_2017_2018_2[,c(716,705,717,711,712,713,714,715)],na.rm = TRUE)
 
+management_edit<-Edit_2017_2018_2[ ,c("NORDEMP","Management","avg_non_inc_q","avg_inc_q")]
+
+write_dta(management_edit,"~/Google Drive/Internship_WB_Summer/Edit/Github/management_edit.dta")
+
 ```
 
 # Summary 
@@ -211,6 +215,7 @@ multiplant_filter<-count_dpto_ciiu4[(count_dpto_ciiu4$uniplant=="0"),]
 dpto_ciiu4<-merge(dpto_ciiu4,multiplant_filter,by="nordemp", all.x = TRUE)
 #filter for multiplants
 multiplant_filter<-NaRV.omit(dpto_ciiu4)
+
 
 #pivot table with max of VALORVEN from multiplant_filter: 
 multiplant_filter<-multiplant_filter%>% 
@@ -411,6 +416,10 @@ ggplot(data=my_over_hist2,aes(x=Score))+
   geom_bar(aes(y=USA),stat="identity",position ="identity",alpha=.5,fill='white',color='blue')+ 
   labs(x="Score: Colombia(red) - USA(blue)",
        y="Share")+theme(plot.title = element_text(hjust = 0.5))
+
+
+write_dta(my_over_hist2,"~/Google Drive/Internship_WB_Summer/Edit/Github/over_hist.dta")
+
 ```
 
 
@@ -455,6 +464,8 @@ total$ipr<-total$VI1R8C2
 total$wage_per_emp<-total$totalwages/total$empltot
 #7. Ln (Wage/Empl) - 2018
 total$lnwage_per_emp<-log(total$wage_per_emp)
+
+max(total$productivity3)
 
 #summary(total$valueadded)
 
@@ -681,6 +692,7 @@ g1_3<-NaRV.omit(g1_3)
 
 m1 <- miceadds::lm.cluster(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree+factor(CIIU4),cluster="NORDEMP", data = g1_1)
 
+
 #cor(g1_1$lnprod, g1_1$Management): 0.3284096, r2=0.1079
                            
 m2 <- miceadds::lm.cluster(lnprod ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree+factor(dpto),cluster="NORDEMP",data = g1_1)
@@ -700,7 +712,8 @@ m8 <- miceadds::lm.cluster(profoversales ~ Management+lnfape+lniipe+lnempltot+st
 m9<-miceadds::lm.cluster(profoversales ~ Management+lnfape+lniipe+lnempltot+staff_with_college_degree,cluster="NORDEMP",data=g1_3)
 
 
-texreg(list(m1, m2,m3,m4,m5,m6,m7,m8,m9),caption.above = TRUE, caption="Firm Management Scores and Performance (1)",fontsize = "small", custom.header = list("Ln(Output/Emp)"=1:3,"Ln(Sales/Emp)"=4:6, "Profit/Sales"=7:9),digits =2,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)", "Ln(Input/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses (clustered at firm level). The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9. The regressions include clustered standard errors by CIIU4 and region, depending on the fixed effect applied}")) 
+texreg(list(m1, m2,m3,m4,m5,m6,m7,m8,m9),caption.above = TRUE, caption="Firm Management Scores and Performance (1)",fontsize = "small", custom.header = list("Ln(Output/Emp)"=1:3,"Ln(Sales/Emp)"=4:6, "Profit/Sales"=7:9),digits =2,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)", "Ln(Input/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses (clustered at firm level). The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9. The regressions include clustered standard errors by firm}")) 
+
 
 
 ```
@@ -731,23 +744,23 @@ m15<-miceadds::lm.cluster(log_Value_Added_per_Employee ~ Management + lnfape+lne
 
 
 #FE:yes, with ciiu4. Dependent Variable:Log(Profits/sales)
-m16 <- miceadds::lm.cluster(lnipr ~ Management + lnfape+lnempltot+staff_with_college_degree+factor(CIIU4),cluster = "NORDEMP",data = g2_2)
+m16 <- miceadds::lm.cluster(lnipr ~ Management + lnfape+lnempltot+staff_with_college_degree+factor(CIIU4),cluster = "CIIU4",data = g2_2)
 
-m17 <- miceadds::lm.cluster(lnipr ~ Management + lnfape+lnempltot+staff_with_college_degree+factor(dpto), cluster="NORDEMP",data = g2_2)
+m17 <- miceadds::lm.cluster(lnipr ~ Management + lnfape+lnempltot+staff_with_college_degree+factor(dpto), cluster="dpto",data = g2_2)
 #FE:No
 m18<-miceadds::lm.cluster(lnipr ~ Management + lnfape+lnempltot+staff_with_college_degree,cluster="NORDEMP",data =g2_2)
 
 
 #FE:yes, with ciiu4. Dependent Variable:RDi
-m19 <- miceadds::lm.cluster(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree+factor(CIIU4),cluster = "NORDEMP", data = g2_3)
+m19 <- miceadds::lm.cluster(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree+factor(CIIU4),cluster = "CIIU4", data = g2_3)
 
 #FE:yes, with ciiu4. Dependent Variable:RDi
-m20 <- miceadds::lm.cluster(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree+factor(dpto),cluster = "NORDEMP",data = g2_3)
+m20 <- miceadds::lm.cluster(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree+factor(dpto),cluster = "dpto",data = g2_3)
 
 #FE:No
 m21<-miceadds::lm.cluster(lnRDi_per_empl1~ Management + lnfape+lnempltot+staff_with_college_degree,cluster = "NORDEMP",data =g2_3)
 
-texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption="Firm Management Scores and Performance (2)",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:3,"Log(1+IP Registers)"=4:6, "Log(1+RDi/Emp)"=7:9),digits =2, omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9.The regressions include clustered standard errors by CIIU4 and region, depending on the fixed effect applied}")) 
+texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption="Firm Management Scores and Performance (2)",fontsize = "small",   custom.header = list("Log(VA/Emp)"=1:3,"Log(1+IP Registers)"=4:6, "Log(1+RDi/Emp)"=7:9),digits =2, omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)","Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5","6","7","8","9"),custom.note = ("\\parbox{0.95\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. The management score is the unweighted average of the score for each of the 16 questions, where each question is first normalized to be on a 0–1 scale. The sample is all EDIT observations with at least 11 non-missing responses to management questions and a successful match to EAM, which have positive value added, positive employment, and positive imputed capital. The columns 1-3 mean the models with Industry Fixed Effects, Location Fixed Effects and no Fixed Effects, respectively.This also applies for columns 4-6 and 7-9.The regressions include clustered standard errors by firm}")) 
 
 
 ```
@@ -762,7 +775,7 @@ texreg(list(m13, m14,m15,m16,m17,m18,m19,m20,m21),caption.above = TRUE, caption=
 #II1R4C2:Investment on ITC
 
 #in order to replace NA by zeroes
-g3_subset<-subset(total,select=c(NORDEMP,log_Value_Added_per_Employee,Management,lnRDi_per_empl1,ICT_per_Employee,staff_with_college_degree))
+g3_subset<-subset(total,select=c(NORDEMP,log_Value_Added_per_Employee,Management,lnRDi_per_empl1,ICT_per_Employee,staff_with_college_degree,CIIU4))
 
 
 g3_1<-g3_subset
@@ -825,10 +838,10 @@ total<-total%>%
 #LogI:lnintinput
 
 
-m41a<-miceadds::lm.cluster(lna~ avgtariff+wit,data=total,cluster = "CIIU4")
+m41a<-miceadds::lm.cluster(lna~ avgtariff+wit+factor(CIIU4),data=total,cluster = "NORDEMP")
 
 
-texreg(list(m41a),caption.above = TRUE, caption="TFP at firm level and Tariffs",fontsize = "normalsize", custom.header = list("Revenue-based Total Factor Productivity"=1),digits =3,omit.coef ="Intercept",custom.coef.names=c("Average Output Tariff","Weighted Input Tariff"), custom.model.names =c("1"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses.Dependent variable is firm level Total Factor Productivity. According to Konings and Amiti(2005),independent variables are the Average Output Tariff and Weighted Input Tariff. The Average Tariff is the average of the tariffs according to the CIIU 4 code of the firm, using the data from International Trade Center ITC: macmap.org.Since tariffs are classified HS codes, we use a table from DANE, which has an equivalence between HS codes and CIIU4, published in: https://www.dane.gov.co/index.php/sistema-estadistico-nacional-sen/normas-y-estandares/nomenclaturas-y-clasificaciones/tablas-correlativas, trade section. For the Weighted Input Tariff, we use the imported input -output matrix (IIOM) published by DANE: https://www.dane.gov.co/index.php/estadisticas-por-tema/cuentas-nacionales/cuentas-nacionales-anuales/matrices-complementarias, (2015). Since IOM does not use CIIU4 codes, we elaborate a concordance table between IIOM activities and two or three digits CIIU4 levels. The average tariff of these two or three digits CIIU4 levels is weighted by the IIOM and subsequently matched to the firm two or three digits CIIU4 codes. The concordance table is in the annex. The regressions include clustered standard errors by four digits CIIU4 codes}"))
+#texreg(list(m41a),caption.above = TRUE, caption="TFP at firm level and Tariffs",fontsize = "normalsize", custom.header #= list("Revenue-based Total Factor Productivity"=1),digits =3,omit.coef ="Intercept",custom.coef.names=c("Average #Output Tariff","Weighted Input Tariff"), custom.model.names =c("1"),custom.note = #("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses.Dependent #variable is firm level Total Factor Productivity. According to Konings and Amiti(2005),independent variables are the #Average Output Tariff and Weighted Input Tariff. The Average Tariff is the average of the tariffs according to the CIIU #4 code of the firm, using the data from International Trade Center ITC: macmap.org.Since tariffs are classified HS #codes, we use a table from DANE, which has an equivalence between HS codes and CIIU4, published in: #https://www.dane.gov.co/index.php/sistema-estadistico-nacional-sen/normas-y-estandares/nomenclaturas-y-clasificaciones/#tablas-correlativas, trade section. For the Weighted Input Tariff, we use the imported input -output matrix (IIOM) #published by DANE: https://www.dane.gov.co/index.php/estadisticas-por-tema/cuentas-nacionales/cuentas-nacionales-anuale#s/matrices-complementarias, (2015). Since IOM does not use CIIU4 codes, we elaborate a concordance table between IIOM #activities and two or three digits CIIU4 levels. The average tariff of these two or three digits CIIU4 levels is #weighted by the IIOM and subsequently matched to the firm two or three digits CIIU4 codes. The concordance table is in #the annex. The regressions include clustered standard errors by firm and fixed effects for industry}"))
 
 
 ```
@@ -867,7 +880,7 @@ texreg(list(m22, m23),caption.above = TRUE, caption="Product Market Competition 
 
 #Drivers of Total Factor Productivity
 
-g6<-merge(g5,g3_subset[ , c("NORDEMP","lnRDi_per_empl1","ICT_per_Employee")],by="NORDEMP",all.x=TRUE)
+g6<-merge(g5,g3_subset[ , c("NORDEMP","lnRDi_per_empl1","ICT_per_Employee","CIIU4")],by="NORDEMP",all.x=TRUE)
 g6_b<-NaRV.omit(g6)
 g6$lnRDi_per_empl1[is.na(g6$lnRDi_per_empl1)] <- 0
 g6$ICT_per_Employee[is.na(g6$ICT_per_Employee)] <-256.7
@@ -875,18 +888,18 @@ g6$ICT_per_Employee[is.na(g6$ICT_per_Employee)] <-256.7
 
 #Revenue-based Total Factor Productivity
 
-m24<-miceadds::lm.cluster(lna ~ Management,cluster="NORDEMP", data=g6,)
+m24<-miceadds::lm.cluster(lna ~ Management+factor(CIIU4.y),cluster="NORDEMP", data=g6,)
 
-m25<-miceadds::lm.cluster(lna ~ Management+lnRDi_per_empl1,cluster="NORDEMP", data =g6)
+m25<-miceadds::lm.cluster(lna ~ Management+lnRDi_per_empl1+factor(CIIU4.y),cluster="NORDEMP", data =g6)
 
-m26<-miceadds::lm.cluster(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee,cluster="NORDEMP", data=g6)
+m26<-miceadds::lm.cluster(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee+factor(CIIU4.y),cluster="NORDEMP", data=g6)
 
-m27<-miceadds::lm.cluster(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee+staff_with_college_degree,cluster="NORDEMP", data =g6)
+m27<-miceadds::lm.cluster(lna ~ Management+lnRDi_per_empl1+ICT_per_Employee+staff_with_college_degree+factor(CIIU4.y),cluster="NORDEMP", data =g6)
 
 
 
-texreg(list(m24, m25,m26,m27),caption.above = TRUE, caption="Drivers of Total Factor Productivity", fontsize = "normalsize", custom.header = list("Revenue-based Total Factor Productivity - RTFP"=1:4),digits =3,omit.coef ="Intercept",custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.9\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. Dependent variable is firm level TFP built from industry firm-level. Independent variables are management score, RDi measured as log(1+RDi intensity) where RDi intensity is the total domestic RDi expenditure divided by total domestic employment, IT investment per worker, skill measured by the share of employees (managers and non-managers) with a college
-degree.Missing values have been replaced by zero for RDi and by means for the other variables.The regressions include robust standard errors}"))
+texreg(list(m24, m25,m26,m27),caption.above = TRUE, caption="Drivers of Total Factor Productivity", fontsize = "normalsize", custom.header = list("Revenue-based Total Factor Productivity - RTFP"=1:4),digits =3,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","RDi", "ICT/Emp","Degree"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{0.9\\linewidth}{\\vspace{3pt}%stars. \\\\OLS coefficients with standard errors in parentheses. Dependent variable is firm level TFP built from industry firm-level. Independent variables are management score, RDi measured as log(1+RDi intensity) where RDi intensity is the total domestic RDi expenditure divided by total domestic employment, IT investment per worker, skill measured by the share of employees (managers and non-managers) with a college
+degree.Missing values have been replaced by zero for RDi and by means for the other variables.The regressions include standard errors clusterd by firm and fixed effects for industry}"))
 
 
 ```
@@ -919,7 +932,7 @@ m29a <- miceadds::lm.cluster(Management ~lerner+avgtariff+wit+factor(dpto),data 
 m30<-miceadds::lm.cluster(Management ~lerner+avgtariff+wit+I((lerner*avgtariff))+factor(dpto), cluster="CIIU4",data =g7)
 m31<-miceadds::lm.cluster(Management ~lerner+avgtariff+wit+I((lerner*avgtariff))+lnfape+lnempltot+staff_with_college_degree+factor(dpto),cluster="CIIU4",data =g7)
 
-texreg(list(m28, m29,m29a,m30,m31),caption.above = TRUE, caption="Market Competition and Management", fontsize = "normalsize", custom.header = list("Management"=1:5),digits =3,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Lerner Index","Average Output Tariff","Weighted input Tariff", "Inter Lerner*Tariff","Ln(Cap/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\Lerner Index is the gross profits over sales, where gross profits equals to production value less material costs and wage costs in 2018.The Average Tariff is the average of the tariffs according to the CIIU 4 code of the firm, using the data from International Trade Center ITC: macmap.org.Since tariffs are classified HS codes, we use a table from DANE, which has an equivalence between HS codes and CIIU4, published in: https://www.dane.gov.co/index.php/sistema-estadistico-nacional-sen/normas-y-estandares/nomenclaturas-y-clasificaciones/tablas-correlativas, trade section. For the Weighted Input Tariff, we use the imported input -output matrix (IIOM) published by DANE: https://www.dane.gov.co/index.php/estadisticas-por-tema/cuentas-nacionales/cuentas-nacionales-anuales/matrices-complementarias, (2015). Since IOM does not use CIIU4 codes, we elaborate a concordance table between IIOM activities and two or three digits CIIU4 levels. The average tariff of these two or three digits CIIU4 levels is weighted by the IIOM and subsequently matched to the firm two or three digits CIIU4 codes. The concordance table is in the annex. The last column of this regression table includes  a interaction between Lerner Index and Average Output Tariff and full controls. All regressions have Location Fixed Effects by department in Colombia and clustered standard errors by CIIU 4.}"))
+texreg(list(m28, m29,m29a,m30,m31),caption.above = TRUE, caption="Market Competition and Management", fontsize = "normalsize", custom.header = list("Management"=1:5),digits =3,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Lerner Index","Average Output Tariff","Weighted input Tariff", "Inter Lerner*Tariff","Ln(Cap/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2","3","4","5"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\Lerner Index is the gross profits over sales, where gross profits equals to production value less material costs and wage costs in 2018.The Average Tariff is the average of the tariffs according to the CIIU 4 code of the firm, using the data from International Trade Center ITC: macmap.org.Since tariffs are classified HS codes, we use a table from DANE, which has an equivalence between HS codes and CIIU4, published in: https://www.dane.gov.co/index.php/sistema-estadistico-nacional-sen/normas-y-estandares/nomenclaturas-y-clasificaciones/tablas-correlativas, trade section. For the Weighted Input Tariff, we use the imported input -output matrix (IIOM) published by DANE: https://www.dane.gov.co/index.php/estadisticas-por-tema/cuentas-nacionales/cuentas-nacionales-anuales/matrices-complementarias, (2015). Since IOM does not use CIIU4 codes, we elaborate a concordance table between IIOM activities and two or three digits CIIU4 levels. The average tariff of these two or three digits CIIU4 levels is weighted by the IIOM and subsequently matched to the firm two or three digits CIIU4 codes. The concordance table is in the annex. The last column of this regression table includes  a interaction between Lerner Index and Average Output Tariff and full controls. All regressions have Location Fixed Effects by department in Colombia and clustered standard errors by industry.}"))
 
 ```
 
@@ -931,7 +944,7 @@ m28b<-miceadds::lm.cluster( Management ~ chshare,cluster="CIIU4",data =g7)
 m29b <- miceadds::lm.cluster(Management ~chshare+lnfape+lnempltot+staff_with_college_degree,cluster="CIIU4",data = g7)
 
 
-texreg(list(m28b, m29b),caption.above = TRUE, caption="China Import Share and Management", fontsize = "normalsize", custom.header = list("Management"=1:2),digits =3,omit.coef ="Intercept",custom.coef.names=c("China Import Share","Ln(Cap/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.9\\linewidth}{\\vspace{3pt}%stars. \\\\The China Import Share means imports from China / Total imports for each industry (4 digits CIIU rev4). This table uses this China Import Share without controls:column (1), and with full controls:column (2). We estimated the China Import Share according to the Import Origin published by DANE and matched them to the firm four digits CIIU4 codes.The regressions include clustered standard errors by four digits CIIU4 codes.}"))
+texreg(list(m28b, m29b),caption.above = TRUE, caption="China Import Share and Management", fontsize = "normalsize", custom.header = list("Management"=1:2),digits =3,omit.coef ="Intercept",custom.coef.names=c("China Import Share","Ln(Cap/Emp)", "Ln(Employment)","Degree"), custom.model.names =c("1","2"),custom.note = ("\\parbox{0.9\\linewidth}{\\vspace{3pt}%stars. \\\\The China Import Share means imports from China / Total imports for each industry (4 digits CIIU rev4). This table uses this China Import Share without controls:column (1), and with full controls:column (2). We estimated the China Import Share according to the Import Origin published by DANE and matched them to the firm four digits CIIU4 codes.The regressions include clustered standard errors by industry (four digits).}"))
 
 ```
 
@@ -1030,10 +1043,14 @@ texreg(list(m31d),caption.above = TRUE, caption="Differentiated Products and Man
 ```
 
 
-```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis", results='hide'}
+
+total$size<-ifelse(total$empltot<=50, 1, ifelse(total$empltot>50 & total$empltot <=250,2, ifelse(total$empltot>250,3,"some value")))
+
+total <- dummy_cols(total, select_columns = 'size')
 
 # dummies TRADE REGRESSIONS (Exports, Imports, Export+Import=Trade. This uses EAM survey data, no expo-transaction) 
-g8<-subset(total,select=c(NORDEMP,xer,mer,traded,lnsales_x,lniraw_m,lntrade,Management,dpto,lnfape,lnempltot,staff_with_college_degree,CIIU4))
+g8<-subset(total,select=c(NORDEMP,xer,mer,traded,lnsales_x,lniraw_m,lntrade,Management,dpto,lnfape,lnempltot,lnwage_per_emp,size_3,size_2,staff_with_college_degree,CIIU4))
 g8<-NaRV.omit(g8)
 
 #Dummies
@@ -1157,9 +1174,7 @@ texreg(list(m68,m69,m70,m70a,m71,m72,m73,m74),caption.above = TRUE, caption="Ext
 
 ```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis",fig.show='hide',results='hide'}
 
-total$size<-ifelse(total$empltot<=50, 1, ifelse(total$empltot>50 & total$empltot <=250,2, ifelse(total$empltot>250,3,"some value")))
 
-total <- dummy_cols(total, select_columns = 'size')
 
 
 g12<-subset(total,select=c(NORDEMP,lncount_destiny,lncount_products,lncount_dest_prod,lnexport2018,lnexport2018_per_dest,lnexport2018_per_prod,lnexport2018_per_dest_prod,lntop_dest_prod,Management,dpto,lnfape,lnempltot,staff_with_college_degree,CIIU4,lnfape,size_3,size_2,lnwage_per_emp))
@@ -1212,6 +1227,8 @@ g12a<-g12a%>%
 
 g12a<-NaRV.omit(g12a)
 
+#count(g12a,"NORDEMP")
+
 #With employment dummies with fixed effects, with clustered SE by firm USING Log (1+variable)
 m82_all<-miceadds::lm.cluster(ln_1_count_destiny ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
 m83_all<-miceadds::lm.cluster(ln_1_count_products ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
@@ -1222,11 +1239,24 @@ m86_all<-miceadds::lm.cluster(ln_1_export2018_per_prod~Management+lnfape+size_3+
 m87_all<-miceadds::lm.cluster(ln_1_export2018_per_dest_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
 m88_all<-miceadds::lm.cluster(ln_1_top_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
 
+##1 trade dummies with size dummies and wage_per_empl 
+#########Table 5 (Dummies)######
 
-texreg(list(m82,m83,m84,m84a,m85,m86,m87,m88),caption.above = TRUE, caption="Extensive and Intensive Margins for Exporters - With Employment Dummies and Fixed Effects", fontsize = "small",digits =2,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)"), custom.model.names =c("LnD","LnP","LnD-P","LnExp", "LnExp/D","Ln Exp/P", "Ln Exp/D-P", "Ln TopD-P"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins of their exports. LnD:Log of destinations,LnP:Log of products by HS 6 digits,LnD-P: Log of pairs destination-products,LnExp: Log of Exports, LnExp/D: Log(Exports/Destinations,Ln Exp/P:Log(Exports/Products),Ln Exp/D-P:Log(Exports/pairs destination-products),Ln TopD-P:Log(exports in a firm's highest-revenue destination-product).The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm.}"))
+#Dummies
+m35b<-miceadds::lm.cluster(xer ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g8)
+m36b<-miceadds::lm.cluster(mer ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g8)
+m37b<-miceadds::lm.cluster(traded ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g8)
+
+texreg(list(m35b,m36b,m37b),caption.above = TRUE, caption="Dummies of trade outcomes and Management", fontsize = "normalsize",digits =3,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)"), custom.model.names =c("Dummy Exports","Dummy Imports","Dummy Trade"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between export status (Dummy Exports = 1 if value of exported products>0 and 0 otherwise), import status (Dummy Import=1 if value of imported inputs>0 and 0 otherwise), trade status (Dummy Trade=1 if value of exports + imports>0 and 0 otherwise) and firm's management practices.It includes some controls: Ln(Cap/Emp), Ln(Employment) and the percent of staff with college degree. All regressions include fixed effects for firm location (department) and 4 digits - CIIU 4 (industry) and clustered standard errors by firm }"))
 
 
-texreg(list(m82_all,m83_all,m84_all,m84a_all,m85_all,m86_all,m87_all,m88_all),caption.above = TRUE, caption="Extensive and Intensive Margins for all firms - With Employment Dummies and Fixed Effects", fontsize = "small",digits =2,custom.coef.names=c("Manag","Ln(C/E)","Big=1","Med=1","Degree","Ln(W/E)"), custom.model.names =c("Ln(1+D)","Ln(1+P)","Ln(1+DP)","Ln(1+E)", "Ln(1+E/D)","Ln(1+E/P)", "Ln(1+E/D-P)", "Ln(1+TopDP)"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins for the entire sample applying the transformation (1 + variable). D:destinations,P:products by HS 6 digits,DP:pairs destination-products,E:Exports,E/D:Exports/Destinations,E/P:Exports/Products,E/D-P:Exports/pairs destination-products,TopD-P:exports in a firm's highest-revenue destination-product.The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm.}"))
+################################
+
+
+texreg(list(m82,m83,m84,m84a,m85,m86,m87,m88),caption.above = TRUE, caption="Extensive and Intensive Margins for Exporters - With Employment Dummies and Fixed Effects", fontsize = "small",digits =2,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)"), custom.model.names =c("LnD","LnP","LnD-P","LnExp", "LnExp/D","Ln Exp/P", "Ln Exp/D-P", "Ln TopD-P"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins of their exports. LnD:Log of destinations,LnP:Log of products by HS 6 digits,LnD-P: Log of pairs destination-products,LnExp: Log of Exports, LnExp/D: Log(Exports/Destinations,Ln Exp/P:Log(Exports/Products),Ln Exp/D-P:Log(Exports/pairs destination-products),Ln TopD-P:Log(exports in a firm's highest-revenue destination-product).The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm and fixed effects for industry and region}"))
+
+
+texreg(list(m82_all,m83_all,m84_all,m84a_all,m85_all,m86_all,m87_all,m88_all),caption.above = TRUE, caption="Extensive and Intensive Margins for all firms - With Employment Dummies and Fixed Effects", fontsize = "small",digits =2,custom.coef.names=c("Manag","Ln(C/E)","Big=1","Med=1","Degree","Ln(W/E)"), custom.model.names =c("Ln(1+D)","Ln(1+P)","Ln(1+DP)","Ln(1+E)", "Ln(1+E/D)","Ln(1+E/P)", "Ln(1+E/D-P)", "Ln(1+TopDP)"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins for the entire sample applying the transformation (1 + variable). D:destinations,P:products by HS 6 digits,DP:pairs destination-products,E:Exports,E/D:Exports/Destinations,E/P:Exports/Products,E/D-P:Exports/pairs destination-products,TopD-P:exports in a firm's highest-revenue destination-product.The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm and fixed effects for industry and region.}"))
 
 
 ```
@@ -1330,16 +1360,47 @@ prodcomplex2018<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_i
 #importing whole expo-transaction data 
 dataexpotran<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Export-Transaction/dataexpotransactionoriginal.csv")
 
+countries_ocde<- c("Alemania", "Australia", "Austria", "Bélgica", "Canadá","Corea,Dinamarca","Eslovenia", "España", "Estados Unidos","Estonia", "Finlandia", "Francia", "Grecia", "Hungría", "Irlanda", "Islandia", "Israel","Italia", "Japón", "Letonia", "Lituania", "Luxemburgo", "México", "Noruega", "Nueva Zelandia","Países Bajos", "Polonia", "Portugal", "Reino Unido", "República Checa", "Suecia", "Suiza", "Turquía")
+
+contiguous<-c("Venezuela", "Panamá", "Brasil","Ecuador", "Perú")
+
+spanish<-c("Mexico","España","Argentina","Perú","Venezuela","Chile","Guatemala","Ecuador","Cuba","Bolivia","República Dominicana","Honduras","El Salvador","Paraguay","Nicaragua","Costa Rica","Panamá","Puerto Rico","Uruguay")
+
+
+dataexpotran$ocde <- ifelse(dataexpotran$country %in% countries_ocde, 1,0)
+dataexpotran$not_contiguous <- ifelse(dataexpotran$country %in% contiguous, 0,1)
+dataexpotran$not_spanish <- ifelse(dataexpotran$country %in% spanish, 0,1)
+
 dataexpotran$hs4<-substr(dataexpotran$hs6digits, 1, 4)
 prodcomplex2018<-merge(prodcomplex2018,dataexpotran,by="hs4",all.x = TRUE)
 
-pivotprodcomplex2018<-aggregate(list(prodcomplex2018$complex), by=list(prodcomplex2018$NORDEMP),FUN=mean,na.rm=TRUE)
-colnames(pivotprodcomplex2018)[1] <- "NORDEMP"
-colnames(pivotprodcomplex2018)[2] <- "meancomplex"
+pivotprodcomplex2018_complex<-aggregate(list(prodcomplex2018$complex), by=list(prodcomplex2018$NORDEMP),FUN=mean,na.rm=TRUE)
+pivotprodcomplex2018_ocde<-aggregate(list(prodcomplex2018$ocde), by=list(prodcomplex2018$NORDEMP),FUN=sum,na.rm=TRUE)
+pivotprodcomplex2018_not_cont<-aggregate(list(prodcomplex2018$not_contiguous), by=list(prodcomplex2018$NORDEMP),FUN=sum,na.rm=TRUE)
+pivotprodcomplex2018_not_span<-aggregate(list(prodcomplex2018$not_spanish), by=list(prodcomplex2018$NORDEMP),FUN=sum,na.rm=TRUE)
+
+colnames(pivotprodcomplex2018_complex)[1] <- "NORDEMP"
+colnames(pivotprodcomplex2018_complex)[2] <- "meancomplex"
+colnames(pivotprodcomplex2018_ocde)[1] <- "NORDEMP"
+colnames(pivotprodcomplex2018_ocde)[2] <- "ocde"
+colnames(pivotprodcomplex2018_not_cont)[1] <- "NORDEMP"
+colnames(pivotprodcomplex2018_not_cont)[2] <- "not_cont"
+colnames(pivotprodcomplex2018_not_span)[1] <- "NORDEMP"
+colnames(pivotprodcomplex2018_not_span)[2] <- "not_span"
+
+pivotprodcomplex2018<-merge(pivotprodcomplex2018_complex,pivotprodcomplex2018_ocde,by = "NORDEMP", all.x = TRUE)
+pivotprodcomplex2018<-merge(pivotprodcomplex2018,pivotprodcomplex2018_not_cont,by = "NORDEMP", all.x = TRUE)
+pivotprodcomplex2018<-merge(pivotprodcomplex2018,pivotprodcomplex2018_not_span,by = "NORDEMP", all.x = TRUE)
+
+
+pivotprodcomplex2018$ocde <-ifelse(pivotprodcomplex2018$ocde>0, 1,0)
+pivotprodcomplex2018$not_cont <-ifelse(pivotprodcomplex2018$not_cont>0, 1,0)
+pivotprodcomplex2018$not_span <-ifelse(pivotprodcomplex2018$not_span>0, 1,0)
+
 
 total<-merge(total,pivotprodcomplex2018,by="NORDEMP",all.x = TRUE)
 
-g13_comp<-subset(total,select=c(NORDEMP,lncount_destiny,lncount_products,lncount_dest_prod,lnexport2018,lnexport2018_per_dest,lnexport2018_per_prod,lnexport2018_per_dest_prod,lntop_dest_prod,Management,dpto,lnfape,lnempltot,staff_with_college_degree,CIIU4,lnfape,size_3,size_2,lnwage_per_emp,meancomplex))
+g13_comp<-subset(total,select=c(NORDEMP,lncount_destiny,lncount_products,lncount_dest_prod,lnexport2018,lnexport2018_per_dest,lnexport2018_per_prod,lnexport2018_per_dest_prod,lntop_dest_prod,Management,dpto,lnfape,lnempltot,staff_with_college_degree,CIIU4,lnfape,size_3,size_2,lnwage_per_emp,meancomplex,ocde,not_cont,not_span))
 g13_comp<-NaRV.omit(g13_comp)
 
 #median(g13_comp$meancomplex):0.2285
@@ -1375,15 +1436,111 @@ m102_comp<-miceadds::lm.cluster(lnexport2018_per_prod~Management+lnfape+size_3+s
 m103_comp<-miceadds::lm.cluster(lnexport2018_per_dest_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp_1)
 m104_comp<-miceadds::lm.cluster(lntop_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp_1)
 
+##2 note with fixed effects for region and industry
 
-texreg(list(m89_comp,m90_comp,m91_comp,m92_comp,m93_comp,m94_comp,m95_comp,m96_comp),caption.above = TRUE, caption="Extensive and Intensive Margins for Non-Complex Products", fontsize = "normalsize",digits =2,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)"), custom.model.names =c("LnD","LnP","LnD-P","LnExp", "LnExp/D","Ln Exp/P", "Ln Exp/D-P", "Ln TopD-P"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins of their exports, filtering data for complex products according to product complexity ranking from Atlas of Economic Complexity. This table uses a sub-sample, where the products have a complexity index lower than its median of the entire sample. The complex index is calculated at HS 4digits and matched with the firm's products. LnD:Log of destinations,LnP:Log of products by HS 6 digits,LnD-P: Log of pairs destination-products,LnExp: Log of Exports, LnExp/D: Log(Exports/Destinations,Ln Exp/P:Log(Exports/Products),Ln Exp/D-P:Log(Exports/pairs destination-products),Ln TopD-P:Log(exports in a firm's highest-revenue destination-product).The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm.}"))
+texreg(list(m89_comp,m90_comp,m91_comp,m92_comp,m93_comp,m94_comp,m95_comp,m96_comp),caption.above = TRUE, caption="Extensive and Intensive Margins for Non-Complex Products", fontsize = "normalsize",digits =2,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)"), custom.model.names =c("LnD","LnP","LnD-P","LnExp", "LnExp/D","Ln Exp/P", "Ln Exp/D-P", "Ln TopD-P"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins of their exports, filtering data for complex products according to product complexity ranking from Atlas of Economic Complexity. This table uses a sub-sample, where the products have a complexity index lower than its median of the entire sample. The complex index is calculated at HS 4digits and matched with the firm's products. LnD:Log of destinations,LnP:Log of products by HS 6 digits,LnD-P: Log of pairs destination-products,LnExp: Log of Exports, LnExp/D: Log(Exports/Destinations,Ln Exp/P:Log(Exports/Products),Ln Exp/D-P:Log(Exports/pairs destination-products),Ln TopD-P:Log(exports in a firm's highest-revenue destination-product).The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm and fixed effects for industry and region.}"))
 
 
-texreg(list(m97_comp,m98_comp,m99_comp,m100_comp,m101_comp,m102_comp,m103_comp,m104_comp),caption.above = TRUE, caption="Extensive and Intensive Margins for Complex Products", fontsize = "normalsize",digits =2,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)"), custom.model.names =c("LnD","LnP","LnD-P","LnExp", "LnExp/D","Ln Exp/P", "Ln Exp/D-P", "Ln TopD-P"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins of their exports, filtering data for complex products according to product complexity ranking from Atlas of Economic Complexity. This table uses a sub-sample, where the products have a product complexity index greater than its median of the entire sample . he complex index is calculated at HS 4digits and matched with the firm's products. LnD:Log of destinations,LnP:Log of products by HS 6 digits,LnD-P: Log of pairs destination-products,LnExp: Log of Exports, LnExp/D: Log(Exports/Destinations,Ln Exp/P:Log(Exports/Products),Ln Exp/D-P:Log(Exports/pairs destination-products),Ln TopD-P:Log(exports in a firm's highest-revenue destination-product).The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm.}"))
+texreg(list(m97_comp,m98_comp,m99_comp,m100_comp,m101_comp,m102_comp,m103_comp,m104_comp),caption.above = TRUE, caption="Extensive and Intensive Margins for Complex Products", fontsize = "normalsize",digits =2,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)"), custom.model.names =c("LnD","LnP","LnD-P","LnExp", "LnExp/D","Ln Exp/P", "Ln Exp/D-P", "Ln TopD-P"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins of their exports, filtering data for complex products according to product complexity ranking from Atlas of Economic Complexity. This table uses a sub-sample, where the products have a product complexity index greater than its median of the entire sample . he complex index is calculated at HS 4digits and matched with the firm's products. LnD:Log of destinations,LnP:Log of products by HS 6 digits,LnD-P: Log of pairs destination-products,LnExp: Log of Exports, LnExp/D: Log(Exports/Destinations,Ln Exp/P:Log(Exports/Products),Ln Exp/D-P:Log(Exports/pairs destination-products),Ln TopD-P:Log(exports in a firm's highest-revenue destination-product).The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm and fixed effects for industry and region.}"))
 
 
 ```
 
+
+
+
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+
+##3 for exporters 
+# Interaction (_I) between Management and Complexity and #With employment with fixed effects, with clustered SE by firm
+
+m89_comp_I<-miceadds::lm.cluster(lncount_destiny ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m90_comp_I<-miceadds::lm.cluster(lncount_products ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m91_comp_I<-miceadds::lm.cluster(lncount_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m92_comp_I<-miceadds::lm.cluster(lnexport2018 ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m93_comp_I<-miceadds::lm.cluster(lnexport2018_per_dest~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m94_comp_I<-miceadds::lm.cluster(lnexport2018_per_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m95_comp_I<-miceadds::lm.cluster(lnexport2018_per_dest_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m96_comp_I<-miceadds::lm.cluster(lntop_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+
+
+texreg(list(m89_comp_I,m90_comp_I,m91_comp_I,m92_comp_I,m93_comp_I,m94_comp_I,m95_comp_I,m96_comp_I),caption.above = TRUE, caption="Extensive and Intensive Margins with Management and Complexity Interaction - Exporters", fontsize = "normalsize",digits =2,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)", "I(Man*Compl)"), custom.model.names =c("LnD","LnP","LnD-P","LnExp", "LnExp/D","Ln Exp/P", "Ln Exp/D-P", "Ln TopD-P"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins of their exports, filtering data for complex products according to product complexity ranking from Atlas of Economic Complexity. This table uses a sub-sample, where the products have a complexity index lower than its median of the entire sample. The complex index is calculated at HS 4digits and matched with the firm's products. LnD:Log of destinations,LnP:Log of products by HS 6 digits,LnD-P: Log of pairs destination-products,LnExp: Log of Exports, LnExp/D: Log(Exports/Destinations,Ln Exp/P:Log(Exports/Products),Ln Exp/D-P:Log(Exports/pairs destination-products),Ln TopD-P:Log(exports in a firm's highest-revenue destination-product).The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm and fixed effects for industry and region.}"))
+
+
+```
+
+
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+
+##3 for all firms (1+Exp)
+######Interaction I(Management and Complexity) for whole sample (1+Exp)
+
+g12a<-merge(g12a,g13_comp[,c("NORDEMP","meancomplex")],by="NORDEMP",all.x = TRUE)
+
+
+#With employment dummies with fixed effects, with clustered SE by firm USING Log (1+variable)
+m82_all_I<-miceadds::lm.cluster(ln_1_count_destiny ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
+m83_all_I<-miceadds::lm.cluster(ln_1_count_products ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
+m84_all_I<-miceadds::lm.cluster(ln_1_count_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
+m84a_all_I<-miceadds::lm.cluster(ln_1_export2018 ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
+m85_all_I<-miceadds::lm.cluster(ln_1_export2018_per_dest~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
+m86_all_I<-miceadds::lm.cluster(ln_1_export2018_per_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
+m87_all_I<-miceadds::lm.cluster(ln_1_export2018_per_dest_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
+m88_all_I<-miceadds::lm.cluster(ln_1_top_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ I((Management*meancomplex))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g12a)
+
+texreg(list(m82_all_I,m83_all_I,m84_all_I,m84a_all_I,m85_all_I,m86_all_I,m87_all_I,m88_all_I),caption.above = TRUE, caption="Extensive and Intensive Margins with Management and Complexity Interaction - all firms", fontsize = "small",digits =2,custom.coef.names=c("Manag","Ln(C/E)","Big=1","Med=1","Degree","Ln(W/E)","I(Man*Compl)"), custom.model.names =c("Ln(1+D)","Ln(1+P)","Ln(1+DP)","Ln(1+E)", "Ln(1+E/D)","Ln(1+E/P)", "Ln(1+E/D-P)", "Ln(1+TopDP)"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins for the entire sample applying the transformation (1 + variable). D:destinations,P:products by HS 6 digits,DP:pairs destination-products,E:Exports,E/D:Exports/Destinations,E/P:Exports/Products,E/D-P:Exports/pairs destination-products,TopD-P:exports in a firm's highest-revenue destination-product.The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm and fixed effects for industry and region.}"))
+
+
+```
+
+```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
+
+##5 For Exporters ADDING dummies (Ocde=1, not contiguous=1, not spnahish=1)
+
+#1
+m89_comp_D_1<-miceadds::lm.cluster(lncount_destiny ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ocde+ I((Management*ocde))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m90_comp_D_1<-miceadds::lm.cluster(lncount_products ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ocde+ I((Management*ocde))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m91_comp_D_1<-miceadds::lm.cluster(lncount_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp +ocde+ I((Management*ocde))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m92_comp_D_1<-miceadds::lm.cluster(lnexport2018 ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ocde+ I((Management*ocde))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m93_comp_D_1<-miceadds::lm.cluster(lnexport2018_per_dest~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ocde+ I((Management*ocde))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m94_comp_D_1<-miceadds::lm.cluster(lnexport2018_per_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ocde+ I((Management*ocde))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m95_comp_D_1<-miceadds::lm.cluster(lnexport2018_per_dest_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ocde+ I((Management*ocde))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m96_comp_D_1<-miceadds::lm.cluster(lntop_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ocde+ I((Management*ocde))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+
+#2
+m89_comp_D_2<-miceadds::lm.cluster(lncount_destiny ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+not_cont+I((Management*not_cont))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m90_comp_D_2<-miceadds::lm.cluster(lncount_products ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ not_cont+I((Management*not_cont))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m91_comp_D_2<-miceadds::lm.cluster(lncount_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp +not_cont+I((Management*not_cont))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m92_comp_D_2<-miceadds::lm.cluster(lnexport2018 ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ not_cont+I((Management*not_cont))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m93_comp_D_2<-miceadds::lm.cluster(lnexport2018_per_dest~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+ not_cont+I((Management*not_cont))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m94_comp_D_2<-miceadds::lm.cluster(lnexport2018_per_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+not_cont+I((Management*not_cont))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m95_comp_D_2<-miceadds::lm.cluster(lnexport2018_per_dest_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+not_cont+I((Management*not_cont))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m96_comp_D_2<-miceadds::lm.cluster(lntop_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+not_cont+I((Management*not_cont))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+
+#3
+m89_comp_D_3<-miceadds::lm.cluster(lncount_destiny ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+not_span+ I((Management*not_span))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m90_comp_D_3<-miceadds::lm.cluster(lncount_products ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+not_span+ I((Management*not_span))+I((Management*not_span))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m91_comp_D_3<-miceadds::lm.cluster(lncount_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp +not_span+ I((Management*not_span))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m92_comp_D_3<-miceadds::lm.cluster(lnexport2018 ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp++not_span+ I((Management*not_span))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m93_comp_D_3<-miceadds::lm.cluster(lnexport2018_per_dest~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+not_span+ I((Management*not_span))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m94_comp_D_3<-miceadds::lm.cluster(lnexport2018_per_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+not_span+ I((Management*not_span))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m95_comp_D_3<-miceadds::lm.cluster(lnexport2018_per_dest_prod~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp++not_span+ I((Management*not_span))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+m96_comp_D_3<-miceadds::lm.cluster(lntop_dest_prod ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp++not_span+ I((Management*not_span))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = g13_comp)
+
+
+#Oecd
+texreg(list(m89_comp_D_1,m90_comp_D_1,m91_comp_D_1,m92_comp_D_1,m93_comp_D_1,m94_comp_D_1,m95_comp_D_1,m96_comp_D_1),caption.above = TRUE, caption="Extensive and Intensive Margins with Management and Complexity Interaction - OECD Interaction", fontsize = "normalsize",digits =2,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)", "Ocde=1", "Inter(Man*Ocde)"), custom.model.names =c("LnD","LnP","LnD-P","LnExp", "LnExp/D","Ln Exp/P", "Ln Exp/D-P", "Ln TopD-P"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins of their exports, focusing on the interaction between Management and an export destination dummy according to the Organization for Economic Co-operation and Development (No Oecd = 0, Oecd = 1). If the company has exported to a country belonging to the OECD, this destination dummy is 1. Chile was excluded due to its geographic proximity. LnD:Log of destinations,LnP:Log of products by HS 6 digits,LnD-P: Log of pairs destination-products,LnExp: Log of Exports, LnExp/D: Log(Exports/Destinations,Ln Exp/P:Log(Exports/Products),Ln Exp/D-P:Log(Exports/pairs destination-products),Ln TopD-P:Log(exports in a firm's highest-revenue destination-product).The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm and fixed effects for industry and region.}"))
+
+#Contiguity
+texreg(list(m89_comp_D_2,m90_comp_D_2,m91_comp_D_2,m92_comp_D_2,m93_comp_D_2,m94_comp_D_2,m95_comp_D_2,m96_comp_D_2),caption.above = TRUE, caption="Extensive and Intensive Margins with Management and Complexity Interaction - Contiguity Interaction", fontsize = "normalsize",digits =2,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)", "Not Cont=1","Inter(Man*Not Cont)"), custom.model.names =c("LnD","LnP","LnD-P","LnExp", "LnExp/D","Ln Exp/P", "Ln Exp/D-P", "Ln TopD-P"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins of their exports, focusing on the interaction between Management and a contiguity dummy (No Contiguity = 1, Contiguity = 0). If the company has exported to a country not contiguous to Colombia, this contiguity dummy is 1, otherwise is 0. LnD:Log of destinations,LnP:Log of products by HS 6 digits,LnD-P: Log of pairs destination-products,LnExp: Log of Exports, LnExp/D: Log(Exports/Destinations,Ln Exp/P:Log(Exports/Products),Ln Exp/D-P:Log(Exports/pairs destination-products),Ln TopD-P:Log(exports in a firm's highest-revenue destination-product).The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm and fixed effects for industry and region.}"))
+
+#Language
+texreg(list(m89_comp_D_3,m90_comp_D_3,m91_comp_D_3,m92_comp_D_3,m93_comp_D_3,m94_comp_D_3,m95_comp_D_3,m96_comp_D_3),caption.above = TRUE, caption="Extensive and Intensive Margins with Management and Complexity Interaction - Language Interaction", fontsize = "normalsize",digits =2,custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)", "Not Spanish=1","Inter(Man*Not Span)"), custom.model.names =c("LnD","LnP","LnD-P","LnExp", "LnExp/D","Ln Exp/P", "Ln Exp/D-P", "Ln TopD-P"),omit.coef =c("(Intercept)|(factor)"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\This table examines the relationship between firms' management practices and the extensive and intensive margins of their exports,focusing on the interaction between Management and a language dummy (Not Spanish = 1, Spanish = 0). If the company has exported to a country whose language is different from Spanish, this language dummy is 1, otherwise is 0. LnD:Log of destinations,LnP:Log of products by HS 6 digits,LnD-P: Log of pairs destination-products,LnExp: Log of Exports, LnExp/D: Log(Exports/Destinations,Ln Exp/P:Log(Exports/Products),Ln Exp/D-P:Log(Exports/pairs destination-products),Ln TopD-P:Log(exports in a firm's highest-revenue destination-product).The regressions include dummies employment as a control, where 50<medium<250 workers,big>250 and small<50 is excluded by collinearity. It also has standard errors clustered by firm and fixed effects for industry and region.}"))
+
+
+
+
+```
 
 
 ```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis"}
@@ -1439,7 +1596,7 @@ m107<-miceadds::lm.cluster(logtotexp ~Management+lnfape+size_3+size_2+staff_with
 
 m108<-miceadds::lm.cluster(logtotexp ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+loggdp_d+logdist+comlang_off+contig+I((Management*logdist))+I((Management*loggdp_d))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = pivotexpotran)
 
-texreg(list(m105,m106,m107,m108),caption.above = TRUE, caption="Exports Revenues with country controls", fontsize = "normalsize", custom.header = list("Ln Exports"=1:4),digits =2,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)","Ln (GDP of destination)","Ln Distance","Common Language=1","Contiguous=1", "Inter(Manag*Dist)","Inter(Manag*Produc)"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\ This table examines the relationship between exports revenues of each country and firm's management practices. The column 1 has controls at firm level: capital per employees, dummies of size measured by employment(Big=1,Medium=1), the share of staff with college degree and the average wage.This table uses dummies of size (medium less than 250 and greater than 50 workers,big greater tha 250; small less than 50 is excluded by collinearity).The column 2 adds controls at country level: log of GDP of destination country, log of distance between the destination country and Colombia and dummies of common language and geographic contiguity.The regressions include fixed effects for CIIU4 and location and standard errors clustered by firm}"))
+texreg(list(m105,m106,m107,m108),caption.above = TRUE, caption="Exports Revenues with country controls", fontsize = "normalsize", custom.header = list("Ln Exports"=1:4),digits =2,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)","Ln (GDP of destination)","Ln Distance","Common Language=1","Contiguous=1", "Inter(Manag*Dist)","Inter(Manag*Produc)"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\ This table examines the relationship between exports revenues of each country and firm's management practices. The column 1 has controls at firm level: capital per employees, dummies of size measured by employment(Big=1,Medium=1), the share of staff with college degree and the average wage.This table uses dummies of size (medium less than 250 and greater than 50 workers,big greater tha 250; small less than 50 is excluded by collinearity).The column 2 adds controls at country level: log of GDP of destination country, log of distance between the destination country and Colombia and dummies of common language and geographic contiguity.The regressions include fixed effects for industry and location and standard errors clustered by firm}"))
 
 
 ```
@@ -1509,7 +1666,7 @@ m111<-miceadds::lm.cluster(logfob_exports_dollars ~Management+lnfape+size_3+size
 
 m112<-miceadds::lm.cluster(logfob_exports_dollars ~Management+lnfape+size_3+size_2+staff_with_college_degree+lnwage_per_emp+loggdp_d+logdist+comlang_off+contig+I((Management*logdist))+I((Management*loggdp_d))+factor(CIIU4)+factor(dpto),cluster = "NORDEMP",data = dataexpotran2)
 
-texreg(list(m109,m110,m111,m112),caption.above = TRUE, caption="Exports Revenues with country controls-all firms", fontsize = "normalsize", custom.header = list("Ln (1+Exports)"=1:4),digits =2,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)","Ln (GDP of destination)","Ln Distance","Common Language=1","Contiguous=1", "Inter(Manag*Dist)","Inter(Manag*Produc)"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\ This table examines the relationship between exports revenues of each country and firm's management practices for all firms (exporters and no exporters) by using Ln (1+Exp). The column 1 has controls at firm level: capital per employees, dummies of size measured by employment(Big=1,Medium=1), the share of staff with college degree and the average wage.This table uses dummies of size (50<medium<250 workers,big>250; small<50 is excluded by collinearity).The column 2 adds controls at country level: log of GDP of destination country, log of distance between the destination country and Colombia and dummies of common language and geographic contiguity.The regressions include fixed effects for CIIU4 and location and standard errors clustered by firm}"))
+texreg(list(m109,m110,m111,m112),caption.above = TRUE, caption="Exports Revenues with country controls-all firms", fontsize = "normalsize", custom.header = list("Ln (1+Exports)"=1:4),digits =2,omit.coef =c("(Intercept)|(factor)"),custom.coef.names=c("Management","Ln(Cap/Emp)","Big=1","Medium=1","Degree","Ln(Wage/Emp)","Ln (GDP of destination)","Ln Distance","Common Language=1","Contiguous=1", "Inter(Manag*Dist)","Inter(Manag*Produc)"), custom.model.names =c("1","2","3","4"),custom.note = ("\\parbox{1\\linewidth}{\\vspace{3pt}%stars. \\\\ This table examines the relationship between exports revenues of each country and firm's management practices for all firms (exporters and no exporters) by using Ln (1+Exp). The column 1 has controls at firm level: capital per employees, dummies of size measured by employment(Big=1,Medium=1), the share of staff with college degree and the average wage.This table uses dummies of size (50<medium<250 workers,big>250; small<50 is excluded by collinearity).The column 2 adds controls at country level: log of GDP of destination country, log of distance between the destination country and Colombia and dummies of common language and geographic contiguity.The regressions include fixed effects for industry and location and standard errors clustered by firm}"))
 
 
 
@@ -1568,5 +1725,10 @@ NORDEMP=subset(total, select = c(NORDEMP))
 #write_dta(NORDEMP,"~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/NORDEMP.dta")
 
 
+management_total<-total[ ,c("NORDEMP","Management","avg_non_inc_q","avg_inc_q","exports_millions","rdi_millions","productivity3")]
+
+colnames(management_total)[7] <- "productivity_millions"
+
+write_dta(management_total,"~/Google Drive/Internship_WB_Summer/Edit/Github/management_total.dta")
 
 ```
