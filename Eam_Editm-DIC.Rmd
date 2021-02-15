@@ -72,7 +72,7 @@ library(data.table)
 
 
 library(haven)
-Edit_2017_2018_1 <- read_dta("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Edit 2017_2018_recoded.dta")
+Edit_2017_2018_1 <- read_dta("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/Edit 2017_2018_recoded.dta")
 
 
 ####Cleaning for managers-frequency review. If No key performance indicators (from question 2), question 3 will be zero
@@ -161,7 +161,7 @@ Edit_2017_2018_2$avg_inc_q = rowMeans(Edit_2017_2018_2[,c(716,705,717,711,712,71
 
 management_edit<-Edit_2017_2018_2[ ,c("NORDEMP","Management","avg_non_inc_q","avg_inc_q")]
 
-write_dta(management_edit,"~/Google Drive/Internship_WB_Summer/Edit/Github/management_edit.dta")
+write_dta(management_edit,"~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/management_edit.dta")
 
 ```
 
@@ -176,7 +176,7 @@ Matching the Innovation and Technology Survey EDIT 2017-2018 (acronym in Spanish
 
 library(haven)
 #reading Annual Manufacturing Survey from Colombia
-Eam_2018_1 <- read_dta("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/EAM_2018_30june.dta")
+Eam_2018_1 <- read_dta("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/EAM_2018_30june.dta")
 
 ###proportion of multiplants
 count_nordemp_eam<-data.frame(count(Eam_2018_1,"nordemp"))
@@ -418,7 +418,7 @@ ggplot(data=my_over_hist2,aes(x=Score))+
        y="Share")+theme(plot.title = element_text(hjust = 0.5))
 
 
-write_dta(my_over_hist2,"~/Google Drive/Internship_WB_Summer/Edit/Github/over_hist.dta")
+write_dta(my_over_hist2,"~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/over_hist.dta")
 
 ```
 
@@ -569,7 +569,7 @@ kable(selasticity, col.names =c("Dependent Variable","Coefficient", "From 25pctl
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,results="asis"}
 
 #Reading Expo-Transaction
-expocount<-read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Export-Transaction/expocount.csv")
+expocount<-read_csv("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/Export-Transaction/expocount.csv")
 colnames(df0)[1]<-"NORDEMP"
 
 df0<-merge(df0,expocount,by="NORDEMP",all.x = TRUE)
@@ -802,7 +802,7 @@ texreg(list(reg_dpvlog1, reg_dpvlog2,reg_dpvlog3,reg_dpvlog4),caption.above = TR
 #average tariffs: https://www.macmap.org/
 # ciiu-product: https://www.dane.gov.co/index.php/sistema-estadistico-nacional-sen/normas-y-estandares/nomenclaturas-y-clasificaciones/tablas-correlativas
 
-tarciiu<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Tariffs_CIIU4.csv")
+tarciiu<- read_csv("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/Tariffs_CIIU4.csv")
 
 
 avgtarciiu<-data.frame(aggregate( avgtariff ~ CIIU4,tarciiu, mean ))
@@ -823,7 +823,7 @@ g3a$lna<-g3a$lnvalprod-g3a$p_lnvalprod
 total<-merge(total,g3a[ , c("NORDEMP","lna")],by="NORDEMP",all.x =TRUE)
 
 # reading weighted input tariffs
-wit<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/weighted_input_tariffs.csv")
+wit<- read_csv("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/weighted_input_tariffs.csv")
 
 total<-merge(total,wit,by="ciiu4_2_d",all.x=TRUE)
 
@@ -914,7 +914,7 @@ total$avgtariff_2 <- ave(total$avgtariff, total$ciiu4_2_d)
 total<-total%>%
   relocate(avgtariff, .before = wit)
 
-impo_china_ciiu4<-read_dta("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/impo_china_ciiu4.dta")
+impo_china_ciiu4<-read_dta("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/impo_china_ciiu4.dta")
 total <- merge(total,impo_china_ciiu4,by="CIIU4",all.x=TRUE)
 
 total<-total%>%
@@ -952,12 +952,12 @@ texreg(list(m28b, m29b),caption.above = TRUE, caption="China Import Share and Ma
 ```{r echo=FALSE,warning=FALSE,message=FALSE,results="asis",fig.show='hide',results='hide' }
 
 #Gravity Equation a country level using World Managemt Survey (do not erase, just hide)
-gravity<-read_dta("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/gravity_2013_2015.dta")
+gravity<-read_dta("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/gravity_2013_2015.dta")
 
 gravity2015<-gravity[(gravity$year=="2015"),]
 gravity2014<-gravity[(gravity$year=="2014"),]
 
-managementwms<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/managementwms.csv")
+managementwms<- read_csv("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/managementwms.csv")
 gravity2014<-merge(gravity2014,managementwms,by="oNameFull",all.x = TRUE)
 gravity2015<-merge(gravity2015,managementwms,by="oNameFull",all.x = TRUE)
 
@@ -1021,7 +1021,7 @@ total<-total %>%
   mutate(traded=if_else(sales_x+raw_material_m>0,1,0))
 
 
-rauch<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Rauch/cpc_vs_ciiu4_.csv")
+rauch<- read_csv("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/Rauch/cpc_vs_ciiu4_.csv")
 
 rauch_unique<-rauch[!duplicated(rauch$CIIU4), ]
 
@@ -1090,7 +1090,7 @@ texreg(list(m38,m39,m40),caption.above = TRUE, caption="Shares of trade outcomes
 
 #Expo-transaction, hidden because it is replaced for more specific tables - DO NOT ERASE
 
-expotran<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Export-Transaction/lnexpocount.csv")
+expotran<- read_csv("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/Export-Transaction/lnexpocount.csv")
 
 total<-merge(total,expotran,by="NORDEMP",all.x = TRUE)
 
@@ -1356,9 +1356,9 @@ texreg(list(m97_all,m98_all,m99_all,m100_all,m101_all,m102_all,m103_all,m104_all
 #Extensive and Intensive Margins for all firms BY COMPLEXITY
 
 #importing product-complexity from Harvard data
-prodcomplex2018<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Product_Complexity/prodcomplex2018.csv")
+prodcomplex2018<- read_csv("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/Product_Complexity/prodcomplex2018.csv")
 #importing whole expo-transaction data 
-dataexpotran<- read_csv("~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Export-Transaction/dataexpotransactionoriginal.csv")
+dataexpotran<- read_csv("~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/Export-Transaction/dataexpotransactionoriginal.csv")
 
 countries_ocde<- c("Alemania", "Australia", "Austria", "Bélgica", "Canadá","Corea,Dinamarca","Eslovenia", "España", "Estados Unidos","Estonia", "Finlandia", "Francia", "Grecia", "Hungría", "Irlanda", "Islandia", "Israel","Italia", "Japón", "Letonia", "Lituania", "Luxemburgo", "México", "Noruega", "Nueva Zelandia","Países Bajos", "Polonia", "Portugal", "Reino Unido", "República Checa", "Suecia", "Suiza", "Turquía")
 
@@ -1561,7 +1561,7 @@ dataexpotran<-NaRV.omit(dataexpotran)
 #2.Merge with info at firm level (management, size, assest, wage per employee,...): Truncated Sample (only exporters:dataexpotran1)
 dataexpotran1<-merge(dataexpotran,total[ , c("NORDEMP","Management","lnfape", "size_3","size_2","staff_with_college_degree","CIIU4","dpto","lniipe","lnwage_per_emp")],by="NORDEMP",all.x =TRUE)
 dataexpotran1<-NaRV.omit(dataexpotran1)
-#write_csv(dataexpotran,"~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/Export-Transaction/dataexpotran.csv")
+#write_csv(dataexpotran,"~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/Export-Transaction/dataexpotran.csv")
 
 #Pivot Table in order to aggregate fob_exports by country, which implies droping products (In Gravity equation does not matter HS products)
 pivotexpotran<-aggregate(list(dataexpotran1$fob_exports_dollars), by=list(dataexpotran1$NORDEMP,dataexpotran1$dNameFull,dataexpotran1$distw,dataexpotran1$contig,dataexpotran1$gdp_d,dataexpotran1$comlang_off,dataexpotran1$dpto,dataexpotran1$size_3,dataexpotran1$size_2,dataexpotran1$staff_with_college_degree,dataexpotran1$CIIU4,dataexpotran1$lnfape,dataexpotran1$Management,dataexpotran1$lniipe,dataexpotran1$lnwage_per_emp),FUN=sum,na.rm=TRUE)
@@ -1674,11 +1674,10 @@ texreg(list(m109,m110,m111,m112),caption.above = TRUE, caption="Exports Revenues
 
 
 ```{r echo=FALSE,warning=(FALSE),message=FALSE,fig.show='hide',results='hide'}
-
 set1<-subset(total,select=c(NORDEMP,Management,lnempltot,empltot,CIIU4,RDi,lnRDi_per_empl1,ipr))
-write_dta(set1,"~/Google Drive/Internship_WB_Summer/Edit/Github/Data_Pulso/set1.dta")
+write_dta(set1,"~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/set1.dta")
 
-write_dta(total,"~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/total.dta")
+write_dta(total,"~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/total.dta")
 
 #fig.width = 2.5, fig.height=2.5
 
@@ -1722,13 +1721,21 @@ ggarrange(q1, q2, q3 +rremove("x.text"),
         ncol = 2, nrow = 2,widths = 0.5,heights = 0.5)+theme(plot.title = element_text(hjust = 0.5))
 
 NORDEMP=subset(total, select = c(NORDEMP))
-#write_dta(NORDEMP,"~/Google Drive/Internship_WB_Summer/Edit/Github/My_internship/NORDEMP.dta")
+#write_dta(NORDEMP,"~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/NORDEMP.dta")
 
 
 management_total<-total[ ,c("NORDEMP","Management","avg_non_inc_q","avg_inc_q","exports_millions","rdi_millions","productivity3")]
 
 colnames(management_total)[7] <- "productivity_millions"
 
-write_dta(management_total,"~/Google Drive/Internship_WB_Summer/Edit/Github/management_total.dta")
+write_dta(management_total,"~/Library/Mobile Documents/com~apple~CloudDocs/My_internship/management_total.dta")
+```
+
+
+```{r echo=FALSE,warning=(FALSE),message=FALSE,fig.show='hide',results='hide'}
+
+save(g13_comp,file="data_dummies.Rda")
+
+
 
 ```

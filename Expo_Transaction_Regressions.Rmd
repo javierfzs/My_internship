@@ -1,0 +1,89 @@
+---
+title: "Untitled"
+author: "Javier Fernandez"
+date: "2/2/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+```{r cars}
+
+library(tinytex)
+options(tinytex.verbose = TRUE)
+library(StatMeasures)
+library(scales)
+library(tidyverse)
+library(ggplot2)
+library(stargazer)
+library(dplyr)
+library(kableExtra)
+library(xtable)
+library("knitr")
+library("papeR")
+library("devtools")
+require(plyr)
+library(IDPmisc)
+library(lmtest)
+library(estimatr)
+library(plm)
+library(fastDummies)
+library(texreg)
+library(fixest)
+library(miceadds)
+library(expss)
+library(data.table)
+library(haven)
+install.packages("tidyverse")
+install.packages("dplyr")
+
+library(dplyr)
+library(tidyverse)
+
+load("dataexpotran1.Rda")
+
+top_countries<-dataexpotran1%>%
+  group_by(country)%>%
+  summarise(country_expo = sum(fob_exports_dollars))%>%
+  filter(country_expo>100000000)
+
+load("data_dummies.Rda")
+data_dummies<-g13_comp
+
+nordemp<-data_dummies%>%
+  select(NORDEMP)
+
+df1<-dataexpotran1%>%
+  group_by(NORDEMP,country)%>%
+  summarise(sum_expo = sum(fob_exports_dollars))
+
+
+#dataexpotran1: nordemp with country: if the country has exported to any countru
+#data_dummies: set of firms of my interest
+#top countries: countries where Colombia has exported more than 100 million
+
+# group by the dataexpotran1 by Nordemp, country, summarise: export
+
+
+# task: dtaframe nordemp (reptitive), top country list and log export (from data_dummies) 
+
+df_test <- data.frame(a = 1:2, b = letters[1:2])
+df_test
+new<-df[rep(seq_len(nrow(df)), each = 2), ]
+new
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
